@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>派单管控智能体 v11.1</title>
+<script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+:root{--pri:#4f46e5;--pri-l:#6366f1;--pri-d:#4338ca;--cy:#06b6d4;--em:#10b981;--am:#f59e0b;--ro:#f43f5e;--bg:#f0f2f5;--card:#fff;--t1:#1e293b;--t2:#64748b;--bd:#e2e8f0;--r:12px;--sh:0 4px 6px -1px rgba(0,0,0,.1)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,system-ui,"Segoe UI",sans-serif;background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased}
+.entry{min-height:100vh;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.entry::before{content:'';position:absolute;width:700px;height:700px;border-radius:50%;background:radial-gradient(circle,rgba(79,70,229,.25),transparent 70%);animation:glow 4s ease-in-out infinite}
+.entry::after{content:'';position:absolute;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(6,182,212,.15),transparent 70%);animation:glow 5s ease-in-out infinite reverse;bottom:0;right:0}
+@keyframes glow{0%,100%{transform:scale(1);opacity:.4}50%{transform:scale(1.3);opacity:.7}}
+.entry-title{font-size:32px;font-weight:800;background:linear-gradient(135deg,#818cf8,#22d3ee);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px;position:relative;z-index:1;animation:fu .6s ease}
+.entry-sub{color:#94a3b8;font-size:15px;margin-bottom:40px;position:relative;z-index:1;animation:fu .6s ease .1s both}
+.entry-cards{display:flex;gap:28px;position:relative;z-index:1;flex-wrap:wrap;justify-content:center;padding:0 20px}
+@keyframes fu{from{opacity:0;transform:translateY(24px) scale(.96)}to{opacity:1;transform:translateY(0) scale(1)}}
+.e-card{background:rgba(255,255,255,.06);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(255,255,255,.12);border-radius:20px;padding:36px 32px;width:260px;cursor:pointer;transition:all .35s cubic-bezier(.34,1.56,.64,1);animation:fu .6s ease .2s both}
+.e-card:hover{background:rgba(255,255,255,.1);transform:translateY(-6px);border-color:rgba(129,140,248,.3)}
+.e-card-icon{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;font-size:24px;margin-bottom:16px}
+.e-card-icon.a{background:linear-gradient(135deg,var(--pri),var(--pri-l))}
+.e-card-icon.b{background:linear-gradient(135deg,var(--cy),#0ea5e9)}
+.e-card h3{color:#fff;font-size:18px;margin-bottom:6px}
+.e-card p{color:#94a3b8;font-size:13px;line-height:1.5}
+.emp-entry{margin-top:24px;position:relative;z-index:1;display:flex;gap:8px;animation:fu .6s ease .4s both}
+.emp-entry input{padding:10px 16px;border-radius:10px;border:1px solid rgba(255,255,255,.15);background:rgba(255,255,255,.06);color:#fff;font-size:14px;outline:none;width:160px}
+.emp-entry input::placeholder{color:#64748b}
+.emp-entry input:focus{border-color:var(--pri-l)}
+.emp-entry button{padding:10px 20px;border-radius:10px;border:none;background:linear-gradient(135deg,var(--pri),var(--pri-l));color:#fff;font-size:14px;cursor:pointer;font-weight:600}
+.admin{display:flex;min-height:100vh}
+.side{width:230px;background:#fff;border-right:1px solid var(--bd);padding:16px 0;position:fixed;height:100vh;overflow-y:auto;z-index:50}
+.side-h{padding:0 20px 20px;font-size:17px;font-weight:800;background:linear-gradient(135deg,var(--pri),var(--cy));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.side-h small{display:block;font-size:11px;color:var(--t2);-webkit-text-fill-color:var(--t2);font-weight:400;margin-top:2px}
+.ni{padding:11px 20px;cursor:pointer;transition:all .2s;border-left:3px solid transparent;display:flex;align-items:center;gap:10px;font-size:14px;color:var(--t1)}
+.ni:hover{background:#f8fafc}
+.ni.on{background:rgba(79,70,229,.06);border-left-color:var(--pri);color:var(--pri);font-weight:600}
+.ni-ic{font-size:16px;width:20px;text-align:center}
+.main{margin-left:230px;flex:1;padding:24px;min-width:0}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.topbar h2{font-size:22px;font-weight:700}
+.topbar-r{display:flex;align-items:center;gap:12px}
+.sync-time{font-size:12px;color:var(--t2)}
+.btn{padding:9px 18px;border:none;border-radius:8px;font-size:14px;cursor:pointer;transition:all .2s;font-weight:500}
+.btn-p{background:var(--pri);color:#fff}.btn-p:hover{background:var(--pri-d)}
+.btn-s{background:#f1f5f9;color:var(--t1)}.btn-s:hover{background:#e2e8f0}
+.btn-d{background:var(--ro);color:#fff}.btn-d:hover{background:#e11d48}
+.btn-sm{padding:5px 11px;font-size:12px;border-radius:6px}
+.btn-em{background:var(--em);color:#fff}
+.sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-bottom:20px}
+.sc{background:#fff;border-radius:var(--r);padding:18px;box-shadow:var(--sh);position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:4px}
+.sc.c1::before{background:linear-gradient(90deg,var(--pri),var(--pri-l))}
+.sc.c2::before{background:linear-gradient(90deg,var(--cy),#0ea5e9)}
+.sc.c3::before{background:linear-gradient(90deg,var(--em),#34d399)}
+.sc.c4::before{background:linear-gradient(90deg,var(--am),#fbbf24)}
+.sc.c5::before{background:linear-gradient(90deg,var(--ro),#fb7185)}
+.sc-l{font-size:12px;color:var(--t2);margin-bottom:6px}
+.sc-v{font-size:26px;font-weight:700}
+.sc-v.g{background:linear-gradient(135deg,var(--pri),var(--cy));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.tw{background:#fff;border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;margin-bottom:20px}
+.tw-h{padding:16px 20px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:12px}
+.tw-h h3{font-size:16px;font-weight:600;flex:1}
+table{width:100%;border-collapse:collapse}
+th{background:#f8fafc;padding:10px 14px;text-align:left;font-size:12px;color:var(--t2);border-bottom:1px solid var(--bd);white-space:nowrap}
+td{padding:10px 14px;border-bottom:1px solid var(--bd);font-size:13px}
+tr:hover td{background:#fafbfc}
+.empty{text-align:center;padding:40px;color:var(--t2);font-size:14px}
+.fg{margin-bottom:14px}
+.fl{display:block;font-size:13px;margin-bottom:5px;font-weight:500;color:var(--t1)}
+.fi{width:100%;padding:9px 12px;border:1px solid var(--bd);border-radius:8px;font-size:14px;outline:none;transition:border .2s}
+.fi:focus{border-color:var(--pri)}
+.fi:read-only{background:#f8fafc;color:var(--t2)}
+textarea.fi{resize:vertical;min-height:60px}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.md{background:#fff;border-radius:var(--r);padding:24px;width:100%;max-width:480px;max-height:85vh;overflow-y:auto}
+.md-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.md-h h3{font-size:17px;font-weight:600}
+.md-x{cursor:pointer;font-size:22px;color:var(--t2);line-height:1;background:none;border:none}
+.md-f{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
+.cb-row{display:flex;align-items:center;gap:8px;padding:8px 0}
+.cb-row input{width:18px;height:18px;accent-color:var(--pri)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.badge-em{background:rgba(16,185,129,.1);color:var(--em)}
+.badge-am{background:rgba(245,158,11,.1);color:var(--am)}
+.badge-ro{background:rgba(244,63,94,.1);color:var(--ro)}
+.emp{max-width:520px;margin:0 auto;min-height:100vh;background:var(--bg);padding-bottom:80px}
+.emp-hd{background:linear-gradient(135deg,var(--pri),var(--pri-d));color:#fff;padding:20px 16px;position:sticky;top:0;z-index:10}
+.emp-hd-row{display:flex;justify-content:space-between;align-items:center}
+.emp-hd h2{font-size:20px;margin-bottom:4px}
+.emp-hd p{font-size:13px;opacity:.85}
+.emp-hd-back{background:rgba(255,255,255,.15);border:none;color:#fff;padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer}
+.emp-body{padding:12px}
+.emp-tabs{display:flex;border-bottom:2px solid var(--bd);margin-bottom:12px}
+.emp-tab{padding:10px 20px;cursor:pointer;font-size:14px;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s;color:var(--t2)}
+.emp-tab.on{color:var(--pri);border-bottom-color:var(--pri);font-weight:600}
+.emp-card{background:#fff;border-radius:var(--r);padding:14px;margin-bottom:12px;box-shadow:var(--sh)}
+.emp-card-t{font-size:15px;font-weight:600;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--bd);display:flex;align-items:center;justify-content:space-between}
+.emp-card-t span{font-size:12px;font-weight:400;color:var(--t2)}
+.emp-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
+.emp-3 .fg{margin:0}
+.emp-3 .fl{font-size:12px}
+.emp-3 .fi{padding:10px 8px;font-size:16px;text-align:center}
+.emp-prod{display:flex;align-items:center;gap:6px;padding:6px 0;border-bottom:1px solid #f1f5f9}
+.emp-prod:last-child{border:none}
+.emp-prod-n{flex:1;font-size:13px;font-weight:500}
+.emp-prod-i{width:64px;padding:8px 4px;border:1px solid var(--bd);border-radius:6px;font-size:14px;text-align:center;outline:none}
+.emp-prod-i:focus{border-color:var(--pri)}
+.emp-prod-l{font-size:10px;color:var(--t2);text-align:center;margin-top:2px}
+.emp-prod-grp{display:flex;gap:4px}
+.emp-sub{position:fixed;bottom:0;left:0;right:0;max-width:520px;margin:0 auto;background:#fff;padding:12px 16px;box-shadow:0 -2px 12px rgba(0,0,0,.08);z-index:100}
+.emp-sub button{width:100%;padding:14px;background:linear-gradient(135deg,var(--pri),var(--pri-l));color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer}
+.emp-sub.two-btn{display:flex;gap:8px}
+.emp-sub.two-btn button{flex:1}
+.emp-sub .btn-cancel{background:#f1f5f9;color:var(--t1)}
+.emp-ok{text-align:center;padding:60px 20px}
+.emp-ok .ic{width:64px;height:64px;border-radius:50%;background:rgba(16,185,129,.1);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:32px;color:var(--em)}
+.emp-ok h3{font-size:20px;margin-bottom:8px}
+.emp-ok p{color:var(--t2);font-size:14px;margin-bottom:20px}
+.emp-hist-item{background:#fff;border-radius:var(--r);padding:14px;margin-bottom:8px;box-shadow:var(--sh);display:flex;align-items:center;gap:10px}
+.emp-hist-info{flex:1;min-width:0}
+.emp-hist-date{font-size:11px;color:var(--t2);margin-bottom:3px}
+.emp-hist-name{font-size:14px;font-weight:600;margin-bottom:4px}
+.emp-hist-stats{display:flex;gap:10px;font-size:12px;color:var(--t2);flex-wrap:wrap}
+.emp-hist-stats b{color:var(--t1)}
+.ld{position:fixed;inset:0;background:rgba(0,0,0,.4);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;color:#fff}
+.sp{width:36px;height:36px;border:3px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin-bottom:10px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:rgba(30,41,59,.95);color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;z-index:9998;animation:toastIn .3s ease}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(-10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.qr-item{background:#fff;border-radius:var(--r);padding:16px;box-shadow:var(--sh);text-align:center}
+.qr-item h4{font-size:14px;margin-bottom:8px}
+.qr-box{display:inline-block;padding:12px;background:#fff;border:1px solid var(--bd);border-radius:8px;margin-bottom:8px}
+.qr-box canvas,.qr-box img{display:block}
+.qr-actions{display:flex;gap:6px;justify-content:center}
+.qr-link{font-size:11px;color:var(--t2);word-break:break-all;margin-top:6px;padding:6px;background:#f8fafc;border-radius:4px}
+@media(max-width:768px){.side{width:56px}.side-h,.ni span{display:none}.ni{padding:11px 0;text-align:center;justify-content:center}.main{margin-left:56px;padding:16px}.sg{grid-template-columns:repeat(2,1fr)}.sc-v{font-size:22px}}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+const SUPABASE_URL='https://vagtmsyzoehkakdejgkw.supabase.co';
+const SUPABASE_KEY='sb_publishable_O0aq7OG9x4DkuizZ-E4J6w_uuNu30gf';
+const API=SUPABASE_URL+'/rest/v1';
+const HDR={'apikey':SUPABASE_KEY,'Authorization':'Bearer '+SUPABASE_KEY,'Content-Type':'application/json','Prefer':'return=representation'};
+const PRODUCTS=[{key:'FTTR',name:'FTTR'},{key:'ACAP',name:'ACAP'},{key:'ZP',name:'中屏'},{key:'BZQG',name:'标准迁改'},{key:'ZDYQG',name:'自定义迁改'},{key:'JZ10U',name:'加装10元以上'},{key:'JZ10',name:'加装10元'},{key:'TD',name:'托底'}];
+const TABS=[{id:'dashboard',ic:'📊',name:'总控看板'},{id:'employees',ic:'👥',name:'员工管理'},{id:'dispatches',ic:'📋',name:'派单管理'},{id:'business',ic:'⭐',name:'重点业务'},{id:'analysis',ic:'🎯',name:'人员分析'},{id:'ranking',ic:'🏆',name:'业绩排行'},{id:'qrentry',ic:'📱',name:'填报入口'},{id:'export',ic:'📥',name:'数据导出'}];
+
+const App={
+  state:{config:null,submissions:[],tab:'dashboard',loading:false,lastSync:null},
+  _pollTimer:null,_empId:null,_empName:null,_empDispatches:null,_empHistorySubs:null,
+
+  async init(){
+    if(!SUPABASE_KEY||SUPABASE_KEY==='你的Publishable_key'){
+      document.getElementById('app').innerHTML='<div style="padding:80px 20px;text-align:center"><h2 style="font-size:22px;margin-bottom:12px">请先填写 Key</h2><p style="color:#64748b;font-size:14px">打开代码，将 SUPABASE_KEY 替换为你的 Publishable key</p></div>';return;}
+    this.handleRoute();
+    window.addEventListener('hashchange',()=>this.handleRoute());
+  },
+  handleRoute(){const h=location.hash;if(h.startsWith('#emp='))this.renderEmployee(h.slice(5));else if(h==='#admin')this.renderAdmin();else this.renderEntry();},
+
+  // ===== 数据层 =====
+  async loadConfig(){try{const res=await fetch(API+'/dispatch_config?id=eq.main&select=data',{headers:HDR});const rows=await res.json();if(!rows||rows.length===0){const dc=this.defaultConfig();await this.saveConfig(dc);return dc;}return rows[0].data;}catch(e){console.error('loadConfig',e);return this.defaultConfig();}},
+  async saveConfig(cfg){try{await fetch(API+'/dispatch_config?id=eq.main',{method:'PATCH',headers:{...HDR,'Prefer':'return=minimal'},body:JSON.stringify({data:cfg,updated_at:new Date().toISOString()})});}catch(e){this.toast('保存失败: '+e.message);}},
+  async loadSubmissions(){try{const res=await fetch(API+'/dispatch_submissions?order=created_at.desc',{headers:HDR});const d=await res.json();return d||[];}catch(e){console.error(e);return[];}},
+  async loadEmpSubmissions(empId){try{const res=await fetch(API+'/dispatch_submissions?employee_id=eq.'+empId+'&order=created_at.desc',{headers:HDR});const d=await res.json();return d||[];}catch(e){console.error(e);return[];}},
+  async saveSubmission(s){try{const res=await fetch(API+'/dispatch_submissions',{method:'POST',headers:{...HDR,'Prefer':'return=minimal'},body:JSON.stringify(s)});if(!res.ok){const e=await res.json();this.toast('提交失败: '+(e.message||'错误'));return false;}return true;}catch(e){this.toast('提交失败: '+e.message);return false;}},
+  async updateSubmission(id,updates){try{const res=await fetch(API+'/dispatch_submissions?id=eq.'+id,{method:'PATCH',headers:{...HDR,'Prefer':'return=minimal'},body:JSON.stringify(updates)});return res.ok;}catch(e){this.toast('更新失败: '+e.message);return false;}},
+  async deleteSubmission(id){try{await fetch(API+'/dispatch_submissions?id=eq.'+id,{method:'DELETE',headers:{...HDR,'Prefer':'return=minimal'}});return true;}catch(e){this.toast('删除失败: '+e.message);return false;}},
+  async checkToday(empId,disId){const today=new Date().toISOString().split('T')[0];try{const res=await fetch(API+'/dispatch_submissions?employee_id=eq.'+empId+'&dispatch_id=eq.'+disId+'&submission_date=eq.'+today,{headers:HDR});const d=await res.json();return d&&d.length>0?d[0]:null;}catch(e){return null;}},
+  startPolling(){if(this._pollTimer)clearInterval(this._pollTimer);this._pollTimer=setInterval(async()=>{this.state.submissions=await this.loadSubmissions();this.state.lastSync=new Date();const st=document.getElementById('syncTime');if(st)st.textContent='同步: '+this.fmtTime(this.state.lastSync);if(this.state.tab==='dashboard')this.renderCurrentTab();},15000);},
+  defaultConfig(){return{employees:[{id:'E01',name:'张三',phone:'13800138001'},{id:'E02',name:'李四',phone:'13800138002'},{id:'E03',name:'王五',phone:'13800138003'}],dispatches:[{id:'D001',name:'7月宽带提速派单',totalCount:300,assignments:[{employeeId:'E01',count:100},{employeeId:'E02',count:100},{employeeId:'E03',count:100}]}],keyBusinesses:[{id:'KB01',name:'FTTR推广',description:'推广FTTR全屋光WiFi'},{id:'KB02',name:'宽带提速',description:'引导用户提速至更高带宽'}]};},
+
+  // ===== 工具 =====
+  toast(msg){const t=document.createElement('div');t.className='toast';t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),3000);},
+  showLoading(txt){const d=document.createElement('div');d.id='loading';d.className='ld';d.innerHTML='<div class="sp"></div><p>'+(txt||'加载中')+'</p>';document.body.appendChild(d);},
+  hideLoading(){const d=document.getElementById('loading');if(d)d.remove();},
+  modal(title,content){const o=document.createElement('div');o.className='mo';o.innerHTML='<div class="md"><div class="md-h"><h3>'+title+'</h3><button class="md-x" onclick="this.closest(\'.mo\').remove()">&times;</button></div><div class="md-b">'+content+'</div></div>';o.addEventListener('click',e=>{if(e.target===o)o.remove();});document.body.appendChild(o);return o;},
+  stats(){const s=this.state.submissions,c=this.state.config;const td=c.dispatches.reduce((a,d)=>a+d.totalCount,0);const tp=s.reduce((a,x)=>a+(x.processing_count||0),0);const tc=s.reduce((a,x)=>a+(x.call_connected||0),0);const td2=s.reduce((a,x)=>a+(x.deal_count||0),0);const ts=s.reduce((a,x)=>a+(x.total_score||0),0);const tv=s.reduce((a,x)=>a+parseFloat(x.value_improvement||0),0);return{td,tp,tc,td2,ts,tv:Math.round(tv),cr:tp>0?(tc/tp*100).toFixed(1):0,dc:td>0?(td2/td*100).toFixed(1):0,cc:tc>0?(td2/tc*100).toFixed(1):0};},
+  empStats(eid){const s=this.state.submissions.filter(x=>x.employee_id===eid);const c=this.state.config;const ed=c.dispatches.filter(d=>d.assignments.some(a=>a.employeeId===eid));const dc=ed.reduce((a,d)=>{const as=d.assignments.find(a=>a.employeeId===eid);return a+(as?as.count:0);},0);const tp=s.reduce((a,x)=>a+(x.processing_count||0),0);const tc=s.reduce((a,x)=>a+(x.call_connected||0),0);const td=s.reduce((a,x)=>a+(x.deal_count||0),0);const ts=s.reduce((a,x)=>a+(x.total_score||0),0);const tv=s.reduce((a,x)=>a+parseFloat(x.value_improvement||0),0);return{dc,tp,tc,td,ts,tv:Math.round(tv),cr:tp>0?(tc/tp*100).toFixed(1):0,dcc:dc>0?(td/dc*100).toFixed(1):0,ccc:tc>0?(td/tc*100).toFixed(1):0};},
+  compScore(st){return(parseFloat(st.ts||0)*0.3+parseFloat(st.ccc||0)*2+parseFloat(st.dcc||0)*1.5).toFixed(1);},
+  rating(sc){sc=parseFloat(sc);if(sc>=50)return{l:'优秀',c:'badge-em'};if(sc>=30)return{l:'达标',c:'badge-am'};return{l:'待提升',c:'badge-ro'};},
+  fmtTime(d){if(!d)return'--';return d.toLocaleTimeString('zh-CN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});},
+
+  // ===== 入口页 =====
+  renderEntry(){document.getElementById('app').innerHTML=`<div class="entry"><h1 class="entry-title">派单管控智能体</h1><p class="entry-sub">v11.1 云端协同版 · 数据实时同步</p><div class="entry-cards"><div class="e-card" onclick="location.hash='#admin'"><div class="e-card-icon a">🛡</div><h3>管理员入口</h3><p>管控台、数据看板、人员分析、业绩排行</p></div><div class="e-card" onclick="document.getElementById('empInput').focus()"><div class="e-card-icon b">📝</div><h3>员工填报</h3><p>输入工号进入填报页面，提交后管理员实时可见</p></div></div><div class="emp-entry"><input id="empInput" placeholder="输入工号 如 E01" onkeydown="if(event.key==='Enter')App.goEmp()"><button onclick="App.goEmp()">进入</button></div></div>`;},
+  goEmp(){const v=document.getElementById('empInput').value.trim();if(v)location.hash='#emp='+v;},
+
+  // ===== 管理员端 =====
+  async renderAdmin(){this.showLoading('连接云端...');try{this.state.config=await this.loadConfig();this.state.submissions=await this.loadSubmissions();this.state.lastSync=new Date();}catch(e){this.hideLoading();document.getElementById('app').innerHTML='<div style="padding:60px;text-align:center;color:#f43f5e"><h2>连接失败</h2><p>'+e.message+'</p><p style="margin-top:12px;color:#64748b">请检查 SUPABASE_URL 和 SUPABASE_KEY 是否正确</p></div>';return;}this.hideLoading();this.startPolling();this.renderAdminLayout();this.renderCurrentTab();},
+  renderAdminLayout(){const nav=TABS.map(t=>`<div class="ni ${this.state.tab===t.id?'on':''}" onclick="App.switchTab('${t.id}')"><span class="ni-ic">${t.ic}</span><span>${t.name}</span></div>`).join('');document.getElementById('app').innerHTML=`<div class="admin"><div class="side"><div class="side-h">派单管控台<small>v11.1 云端版</small></div>${nav}</div><div class="main"><div class="topbar"><h2 id="pageTitle">总控看板</h2><div class="topbar-r"><span class="sync-time" id="syncTime">同步: ${this.fmtTime(this.state.lastSync)}</span><button class="btn btn-s btn-sm" onclick="App.refresh()">刷新</button><button class="btn btn-s btn-sm" onclick="location.hash=''">返回</button></div></div><div id="content"></div></div></div>`;},
+  switchTab(tab){this.state.tab=tab;document.querySelectorAll('.ni').forEach((el,i)=>{el.classList.toggle('on',TABS[i].id===tab);});document.getElementById('pageTitle').textContent=TABS.find(t=>t.id===tab).name;this.renderCurrentTab();},
+  renderCurrentTab(){const t=this.state.tab;if(t==='dashboard')this.renderDashboard();else if(t==='employees')this.renderEmployees();else if(t==='dispatches')this.renderDispatches();else if(t==='business')this.renderBusiness();else if(t==='analysis')this.renderAnalysis();else if(t==='ranking')this.renderRanking();else if(t==='qrentry')this.renderQREntry();else if(t==='export')this.renderExport();},
+  async refresh(){this.showLoading('刷新中...');this.state.config=await this.loadConfig();this.state.submissions=await this.loadSubmissions();this.state.lastSync=new Date();this.hideLoading();const st=document.getElementById('syncTime');if(st)st.textContent='同步: '+this.fmtTime(this.state.lastSync);this.renderCurrentTab();this.toast('数据已刷新');},
+
+  // 看板
+  renderDashboard(){const s=this.stats();const cards=[{l:'派单量',v:s.td,c:'c1'},{l:'处理量',v:s.tp,c:'c2'},{l:'呼通量',v:s.tc,c:'c3'},{l:'呼通率',v:s.cr+'%',c:'c4'},{l:'成交量',v:s.td2,c:'c5'},{l:'派单转化率',v:s.dc+'%',c:'c1'},{l:'呼通转化率',v:s.cc+'%',c:'c2'},{l:'提值积分',v:s.ts,c:'c3'},{l:'提升价值',v:s.tv,c:'c4'}];const subs=this.state.submissions;let rows;if(subs.length===0)rows='<div class="empty">暂无填报数据，等待员工提交...</div>';else rows='<table><thead><tr><th>提交时间</th><th>员工</th><th>派单名称</th><th>处理量</th><th>呼通量</th><th>成交量</th><th>积分</th><th>提升价值</th><th>操作</th></tr></thead><tbody>'+subs.map(x=>`<tr><td>${this.fmtTime(new Date(x.created_at))}</td><td>${x.employee_name||''}</td><td>${x.dispatch_name||''}</td><td>${x.processing_count||0}</td><td>${x.call_connected||0}</td><td>${x.deal_count||0}</td><td>${x.total_score||0}</td><td>${x.value_improvement||0}</td><td><button class="btn btn-d btn-sm" onclick="App.rmSub('${x.id}')">删除</button></td></tr>`).join('')+'</tbody></table>';document.getElementById('content').innerHTML=`<div class="sg">${cards.map(c=>`<div class="sc ${c.c}"><div class="sc-l">${c.l}</div><div class="sc-v g">${c.v}</div></div>`).join('')}</div><div class="tw"><div class="tw-h"><h3>填报记录</h3><span style="font-size:13px;color:var(--t2)">共 ${subs.length} 条</span></div>${rows}</div>`;},
+  async rmSub(id){if(!confirm('确认删除此条填报记录？'))return;this.showLoading('删除中...');await this.deleteSubmission(id);this.state.submissions=await this.loadSubmissions();this.hideLoading();this.renderDashboard();this.toast('已删除');},
+
+  // 员工管理
+  renderEmployees(){const emps=this.state.config.employees||[];let rows;if(emps.length===0)rows='<div class="empty">暂无员工，点击右上角添加</div>';else rows='<table><thead><tr><th>工号</th><th>姓名</th><th>电话</th><th>操作</th></tr></thead><tbody>'+emps.map(e=>`<tr><td>${e.id}</td><td>${e.name}</td><td>${e.phone||'-'}</td><td><button class="btn btn-s btn-sm" onclick="App.editEmp('${e.id}')">编辑</button> <button class="btn btn-d btn-sm" onclick="App.delEmp('${e.id}')">删除</button></td></tr>`).join('')+'</tbody></table>';document.getElementById('content').innerHTML=`<div class="tw"><div class="tw-h"><h3>员工列表</h3><div style="display:flex;gap:6px"><button class="btn btn-s btn-sm" onclick="App.importEmps()">批量导入</button><button class="btn btn-p btn-sm" onclick="App.addEmp()">+ 新增</button></div></div>${rows}</div>`;},
+  addEmp(){this.modal('新增员工',`<div class="fg"><label class="fl">工号 *</label><input class="fi" id="empId" placeholder="如 E04"></div><div class="fg"><label class="fl">姓名 *</label><input class="fi" id="empName" placeholder="员工姓名"></div><div class="fg"><label class="fl">电话</label><input class="fi" id="empPhone" placeholder="手机号"></div><div class="md-f"><button class="btn btn-p" onclick="App.saveEmp()">保存</button></div>`);},
+  editEmp(id){const e=this.state.config.employees.find(x=>x.id===id);this.modal('编辑员工',`<div class="fg"><label class="fl">工号</label><input class="fi" id="empId" value="${e.id}" readonly></div><div class="fg"><label class="fl">姓名 *</label><input class="fi" id="empName" value="${e.name}"></div><div class="fg"><label class="fl">电话</label><input class="fi" id="empPhone" value="${e.phone||''}"></div><div class="md-f"><button class="btn btn-p" onclick="App.saveEmp('${id}')">保存</button></div>`);},
+  async saveEmp(id){const eid=document.getElementById('empId').value.trim();const name=document.getElementById('empName').value.trim();const phone=document.getElementById('empPhone').value.trim();if(!eid||!name){this.toast('工号和姓名不能为空');return;}if(id){const e=this.state.config.employees.find(x=>x.id===id);e.name=name;e.phone=phone;}else{if(this.state.config.employees.some(x=>x.id===eid)){this.toast('工号已存在');return;}this.state.config.employees.push({id:eid,name,phone});}this.showLoading('保存中...');await this.saveConfig(this.state.config);this.hideLoading();document.querySelector('.mo')?.remove();this.renderEmployees();this.toast('已保存');},
+  async delEmp(id){if(!confirm('确认删除此员工？'))return;this.state.config.employees=this.state.config.employees.filter(x=>x.id!==id);this.state.config.dispatches.forEach(d=>{d.assignments=d.assignments.filter(a=>a.employeeId!==id);});this.showLoading('删除中...');await this.saveConfig(this.state.config);this.hideLoading();this.renderEmployees();this.toast('已删除');},
+
+  // 批量导入员工
+  importEmps(){this.modal('批量导入员工',`<div style="margin-bottom:12px;padding:12px;background:#f8fafc;border-radius:8px;font-size:13px;color:var(--t2)"><b>格式说明：</b>每行一条，用逗号分隔<br>工号,姓名,电话<br><br><b>示例：</b><br>E04,赵六,13800138004<br>E05,孙七,13800138005<br><br>也可从Excel复制（选中最后三列粘贴）</div><div class="fg"><label class="fl">选择CSV/TXT文件</label><input type="file" accept=".csv,.txt" class="fi" id="importFile" onchange="App.parseFile(this)" style="padding:7px"></div><div class="fg"><label class="fl">或直接粘贴数据</label><textarea class="fi" id="importData" rows="6" placeholder="E04,赵六,13800138004&#10;E05,孙七,13800138005"></textarea></div><div class="md-f"><button class="btn btn-s" onclick="document.querySelector('.mo').remove()">取消</button><button class="btn btn-p" onclick="App.doImport()">导入</button></div>`);},
+  parseFile(input){const file=input.files[0];if(!file)return;const reader=new FileReader();reader.onload=e=>{document.getElementById('importData').value=e.target.result.trim();};reader.readAsText(file);},
+  async doImport(){const text=document.getElementById('importData').value.trim();if(!text){this.toast('请输入或选择文件');return;}const lines=text.split(/\r?\n/);let added=0,skipped=0;const existingIds=this.state.config.employees.map(e=>e.id);for(const line of lines){if(line.includes('工号')||line.includes('姓名'))continue;const parts=line.split(/[,\t]/).map(s=>s.trim());if(parts.length<2)continue;const id=parts[0],name=parts[1],phone=parts[2]||'';if(!id||!name)continue;if(existingIds.includes(id)){skipped++;continue;}this.state.config.employees.push({id,name,phone});existingIds.push(id);added++;}if(added===0){this.toast('未导入任何数据，请检查格式');return;}this.showLoading('保存中...');await this.saveConfig(this.state.config);this.hideLoading();document.querySelector('.mo')?.remove();this.renderEmployees();this.toast('导入成功 '+added+' 人'+(skipped>0?'，跳过 '+skipped+' 个重复':''));},
+
+  // 派单管理
+  renderDispatches(){const ds=this.state.config.dispatches||[];let html;if(ds.length===0)html='<div class="empty">暂无派单，点击上方创建</div>';else html=ds.map(d=>{const assigned=d.assignments.map(a=>{const e=this.state.config.employees.find(x=>x.id===a.employeeId);return `<span class="badge badge-am" style="margin:2px">${e?e.name:a.employeeId}: ${a.count}</span>`;}).join('');return `<div class="tw" style="margin-bottom:12px"><div class="tw-h"><h3>${d.name}</h3><div style="display:flex;gap:6px"><button class="btn btn-s btn-sm" onclick="App.assignDis('${d.id}')">分配</button><button class="btn btn-d btn-sm" onclick="App.delDis('${d.id}')">删除</button></div></div><div style="padding:12px 20px"><span style="font-size:13px;color:var(--t2)">派单总量: <b>${d.totalCount}</b></span><div style="margin-top:8px">${assigned||'<span style="color:var(--t2);font-size:13px">未分配</span>'}</div></div></div>`;}).join('');document.getElementById('content').innerHTML=`<div style="margin-bottom:16px"><button class="btn btn-p" onclick="App.addDis()">+ 新增派单</button></div>${html}`;},
+  addDis(){this.modal('新增派单',`<div class="fg"><label class="fl">派单名称 *</label><input class="fi" id="disName" placeholder="如 8月宽带提速派单"></div><div class="fg"><label class="fl">派单总量 *</label><input class="fi" id="disCount" type="number" placeholder="如 300"></div><div class="md-f"><button class="btn btn-p" onclick="App.saveDis()">创建</button></div>`);},
+  async saveDis(){const name=document.getElementById('disName').value.trim();const count=parseInt(document.getElementById('disCount').value);if(!name||!count){this.toast('名称和总量不能为空');return;}this.state.config.dispatches.push({id:'D'+Date.now(),name,totalCount:count,assignments:[]});this.showLoading('保存中...');await this.saveConfig(this.state.config);this.hideLoading();document.querySelector('.mo')?.remove();this.renderDispatches();this.toast('派单已创建');},
+  async delDis(id){if(!confirm('确认删除此派单？'))return;this.state.config.dispatches=this.state.config.dispatches.filter(d=>d.id!==id);this.showLoading('删除中...');await this.saveConfig(this.state.config);this.hideLoading();this.renderDispatches();this.toast('已删除');},
+  assignDis(id){const d=this.state.config.dispatches.find(x=>x.id===id);const emps=this.state.config.employees;if(emps.length===0){this.toast('请先添加员工');return;}const checks=emps.map(e=>{const a=d.assignments.find(x=>x.employeeId===e.id);return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><input type="checkbox" class="dis-chk" data-id="${e.id}" ${a?'checked':''}><span style="flex:1;font-size:14px">${e.name} (${e.id})</span><input class="fi dis-cnt" data-id="${e.id}" type="number" style="width:80px;text-align:center" value="${a?a.count:''}" placeholder="数量"></div>`;}).join('');this.modal('分配派单: '+d.name,`<div style="margin-bottom:12px;padding:12px;background:#f8fafc;border-radius:8px;font-size:13px;color:var(--t2)">勾选员工并填写分配数量</div>${checks}<div style="margin:12px 0"><button class="btn btn-s btn-sm" onclick="App.autoSplit('${id}')">自动均分</button></div><div class="md-f"><button class="btn btn-p" onclick="App.saveAssign('${id}')">保存分配</button></div>`);},
+  autoSplit(id){const d=this.state.config.dispatches.find(x=>x.id===id);const checked=document.querySelectorAll('.dis-chk:checked');if(checked.length===0){this.toast('请先勾选员工');return;}const cnt=Math.floor(d.totalCount/checked.length);const rem=d.totalCount%checked.length;checked.forEach((c,i)=>{const inp=document.querySelector(`.dis-cnt[data-id="${c.dataset.id}"]`);inp.value=cnt+(i<rem?1:0);});},
+  async saveAssign(id){const d=this.state.config.dispatches.find(x=>x.id===id);const checked=document.querySelectorAll('.dis-chk:checked');d.assignments=Array.from(checked).map(c=>{const inp=document.querySelector(`.dis-cnt[data-id="${c.dataset.id}"]`);return{employeeId:c.dataset.id,count:parseInt(inp.value)||0};});this.showLoading('保存中...');await this.saveConfig(this.state.config);this.hideLoading();document.querySelector('.mo')?.remove();this.renderDispatches();this.toast('分配已保存');},
+
+  // 重点业务
+  renderBusiness(){const kbs=this.state.config.keyBusinesses||[];let rows;if(kbs.length===0)rows='<div class="empty">暂无重点业务</div>';else rows='<table><thead><tr><th>名称</th><th>描述</th><th>操作</th></tr></thead><tbody>'+kbs.map(k=>`<tr><td>${k.name}</td><td>${k.description||'-'}</td><td><button class="btn btn-d btn-sm" onclick="App.delKB('${k.id}')">删除</button></td></tr>`).join('')+'</tbody></table>';document.getElementById('content').innerHTML=`<div class="tw"><div class="tw-h"><h3>重点业务配置</h3><button class="btn btn-p btn-sm" onclick="App.addKB()">+ 新增</button></div>${rows}</div>`;},
+  addKB(){this.modal('新增重点业务',`<div class="fg"><label class="fl">名称 *</label><input class="fi" id="kbName" placeholder="如 FTTR推广"></div><div class="fg"><label class="fl">描述</label><textarea class="fi" id="kbDesc" placeholder="业务描述"></textarea></div><div class="md-f"><button class="btn btn-p" onclick="App.saveKB()">保存</button></div>`);},
+  async saveKB(){const name=document.getElementById('kbName').value.trim();const desc=document.getElementById('kbDesc').value.trim();if(!name){this.toast('名称不能为空');return;}this.state.config.keyBusinesses.push({id:'KB'+Date.now(),name,description:desc});this.showLoading('保存中...');await this.saveConfig(this.state.config);this.hideLoading();document.querySelector('.mo')?.remove();this.renderBusiness();this.toast('已添加');},
+  async delKB(id){if(!confirm('确认删除？'))return;this.state.config.keyBusinesses=this.state.config.keyBusinesses.filter(k=>k.id!==id);await this.saveConfig(this.state.config);this.renderBusiness();this.toast('已删除');},
+
+  // 人员分析
+  renderAnalysis(){const emps=this.state.config.employees||[];if(emps.length===0){document.getElementById('content').innerHTML='<div class="empty">暂无员工数据</div>';return;}const opts=emps.map(e=>`<option value="${e.id}">${e.name} (${e.id})</option>`).join('');document.getElementById('content').innerHTML=`<div class="tw"><div class="tw-h"><h3>人员能力分析</h3><select class="fi" style="width:auto" onchange="App.showAnalysis(this.value)">${opts}</select></div><div id="analysisBody"></div></div>`;this.showAnalysis(emps[0].id);},
+  showAnalysis(eid){const st=this.empStats(eid);const sc=this.compScore(st);const rt=this.rating(sc);const allStats=this.state.config.employees.map(e=>this.empStats(e.id));const maxVal=(arr,fn)=>Math.max(1,...arr.map(fn));const mxP=maxVal(allStats,s=>s.tp),mxD=maxVal(allStats,s=>s.td),mxS=maxVal(allStats,s=>s.ts),mxV=maxVal(allStats,s=>s.tv);const dims=[{label:'派单量',val:st.dc/maxVal(allStats,s=>s.dc)*100},{label:'处理量',val:st.tp/mxP*100},{label:'呼通率',val:parseFloat(st.cr)},{label:'成交量',val:st.td/mxD*100},{label:'积分',val:st.ts/mxS*100},{label:'提升价值',val:st.tv/mxV*100}];document.getElementById('analysisBody').innerHTML=`<div class="sg" style="margin:16px 20px"><div class="sc c1"><div class="sc-l">派单量</div><div class="sc-v">${st.dc}</div></div><div class="sc c2"><div class="sc-l">处理量</div><div class="sc-v">${st.tp}</div></div><div class="sc c3"><div class="sc-l">成交量</div><div class="sc-v">${st.td}</div></div><div class="sc c4"><div class="sc-l">综合评分</div><div class="sc-v g">${sc}</div></div><div class="sc c5"><div class="sc-l">评级</div><div class="sc-v"><span class="badge ${rt.c}">${rt.l}</span></div></div></div><div style="padding:0 20px 20px;display:flex;justify-content:center"><canvas id="radar" width="360" height="360"></canvas></div>`;this.drawRadar('radar',dims);},
+  drawRadar(id,dims){const cv=document.getElementById(id);if(!cv)return;const ctx=cv.getContext('2d');const cx=cv.width/2,cy=cv.height/2;const r=Math.min(cx,cy)-50;const n=dims.length;ctx.clearRect(0,0,cv.width,cv.height);for(let l=1;l<=5;l++){ctx.beginPath();for(let i=0;i<n;i++){const a=Math.PI*2*i/n-Math.PI/2;const rr=r*l/5;const x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.closePath();ctx.strokeStyle='#e2e8f0';ctx.stroke();}for(let i=0;i<n;i++){const a=Math.PI*2*i/n-Math.PI/2;ctx.beginPath();ctx.moveTo(cx,cy);ctx.lineTo(cx+Math.cos(a)*r,cy+Math.sin(a)*r);ctx.strokeStyle='#e2e8f0';ctx.stroke();const lx=cx+Math.cos(a)*(r+24),ly=cy+Math.sin(a)*(r+24);ctx.fillStyle='#64748b';ctx.font='13px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(dims[i].label,lx,ly);}ctx.beginPath();for(let i=0;i<n;i++){const a=Math.PI*2*i/n-Math.PI/2;const rr=r*Math.min(100,Math.max(0,dims[i].val))/100;const x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);}ctx.closePath();ctx.fillStyle='rgba(79,70,229,.15)';ctx.fill();ctx.strokeStyle='#4f46e5';ctx.lineWidth=2;ctx.stroke();for(let i=0;i<n;i++){const a=Math.PI*2*i/n-Math.PI/2;const rr=r*Math.min(100,Math.max(0,dims[i].val))/100;const x=cx+Math.cos(a)*rr,y=cy+Math.sin(a)*rr;ctx.beginPath();ctx.arc(x,y,4,0,Math.PI*2);ctx.fillStyle='#4f46e5';ctx.fill();}},
+
+  // 业绩排行
+  renderRanking(){const emps=this.state.config.employees||[];if(emps.length===0){document.getElementById('content').innerHTML='<div class="empty">暂无员工数据</div>';return;}const ranked=emps.map(e=>{const st=this.empStats(e.id);const sc=parseFloat(this.compScore(st));return{...e,st,sc,rt:this.rating(sc)};}).sort((a,b)=>b.sc-a.sc);const medals=['🥇','🥈','🥉'];document.getElementById('content').innerHTML=`<div class="tw"><div class="tw-h"><h3>业绩排行</h3></div><table><thead><tr><th style="text-align:center">排名</th><th>员工</th><th>派单量</th><th>处理量</th><th>成交量</th><th>积分</th><th>综合评分</th><th>评级</th></tr></thead><tbody>${ranked.map((e,i)=>`<tr><td style="font-size:18px;text-align:center">${i<3?medals[i]:(i+1)}</td><td>${e.name}</td><td>${e.st.dc}</td><td>${e.st.tp}</td><td>${e.st.td}</td><td>${e.st.ts}</td><td><b style="color:var(--pri)">${e.sc}</b></td><td><span class="badge ${e.rt.c}">${e.rt.l}</span></td></tr>`).join('')}</tbody></table></div>`;},
+
+  // 填报入口(QR)
+  renderQREntry(){const emps=this.state.config.employees||[];const baseUrl=location.href.split('#')[0];if(emps.length===0){document.getElementById('content').innerHTML='<div class="empty">暂无员工</div>';return;}const warn=baseUrl.startsWith('file://')?'<div style="padding:12px;background:#fef3c7;border-radius:8px;font-size:13px;color:#92400e;margin-bottom:16px">提示：当前为本地文件，二维码需部署到服务器后手机才能访问</div>':'';document.getElementById('content').innerHTML=warn+`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">${emps.map(e=>{const url=baseUrl+'#emp='+e.id;return `<div class="qr-item" style="margin-bottom:12px"><h4>${e.name} (${e.id})</h4><div class="qr-box" id="qr_${e.id}"></div><div class="qr-actions"><button class="btn btn-s btn-sm" onclick="App.dlQR('${e.id}','${e.name}')">下载二维码</button><button class="btn btn-s btn-sm" onclick="App.cpLink('${url}')">复制链接</button></div><div class="qr-link">${url}</div></div>`;}).join('')}</div>`;emps.forEach(e=>{const el=document.getElementById('qr_'+e.id);if(el){el.innerHTML='';new QRCode(el,{text:baseUrl+'#emp='+e.id,width:180,height:180,colorDark:'#1e293b',colorLight:'#ffffff',correctLevel:QRCode.CorrectLevel.M});}});},
+  dlQR(id,name){const el=document.getElementById('qr_'+id);const cv=el.querySelector('canvas');if(!cv){this.toast('二维码未生成');return;}const a=document.createElement('a');a.download=name+'_填报二维码.png';a.href=cv.toDataURL();a.click();},
+  cpLink(url){navigator.clipboard.writeText(url).then(()=>this.toast('链接已复制')).catch(()=>{const ta=document.createElement('textarea');ta.value=url;document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();this.toast('链接已复制');});},
+
+  // 导出
+  renderExport(){const subs=this.state.submissions;document.getElementById('content').innerHTML=`<div class="tw"><div class="tw-h"><h3>数据导出</h3><button class="btn btn-p btn-sm" onclick="App.exportCSV()">导出CSV</button></div><div style="padding:16px 20px"><p style="font-size:14px;color:var(--t2);margin-bottom:12px">当前共 ${subs.length} 条填报记录</p><p style="font-size:13px;color:var(--t2)">列顺序：派单名称 | 员工 | 派单量 | 处理量 | 呼通量 | 呼通率 | 成交量 | 派单转化率 | 呼通转化率 | 8个产品(数量+积分) | 提升价值</p></div></div>`;},
+  exportCSV(){const subs=this.state.submissions;if(subs.length===0){this.toast('暂无数据可导出');return;}const headers=['派单名称','员工','派单量','处理量','呼通量','呼通率','成交量','派单转化率','呼通转化率'];PRODUCTS.forEach(p=>{headers.push(p.name);headers.push(p.name+'积分');});headers.push('提升价值');const rows=subs.map(s=>{const d=this.state.config.dispatches.find(x=>x.id===s.dispatch_id);const a=d?.assignments.find(x=>x.employeeId===s.employee_id);const dc=a?.count||0;const pc=s.processing_count||0,cc=s.call_connected||0,dl=s.deal_count||0;const prods=s.products||{};const row=[s.dispatch_name||'',s.employee_name||'',dc,pc,cc,pc>0?(cc/pc*100).toFixed(1)+'%':'0%',dl,dc>0?(dl/dc*100).toFixed(1)+'%':'0%',cc>0?(dl/cc*100).toFixed(1)+'%':'0%'];PRODUCTS.forEach(p=>{row.push(prods[p.key]?.count||0);row.push(prods[p.key]?.score||0);});row.push(s.value_improvement||0);return row;});const csv=[headers,...rows].map(r=>r.map(c=>`"${c}"`).join(',')).join('\n');const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=`派单数据_${new Date().toISOString().slice(0,10)}.csv`;a.click();URL.revokeObjectURL(url);this.toast('已导出 '+subs.length+' 条记录');},
+
+  // ===== 员工端 =====
+  async renderEmployee(empId){
+    this.showLoading('加载中...');
+    try{this.state.config=await this.loadConfig();}catch(e){this.hideLoading();document.getElementById('app').innerHTML='<div style="padding:60px;text-align:center;color:#f43f5e"><h2>加载失败</h2><p>'+e.message+'</p></div>';return;}
+    this.hideLoading();
+    const emp=this.state.config.employees.find(e=>e.id===empId);
+    if(!emp){document.getElementById('app').innerHTML=`<div class="emp"><div class="emp-ok"><div class="ic" style="background:rgba(244,63,94,.1);color:var(--ro)">!</div><h3>工号不存在</h3><p>工号「${empId}」未在系统中注册，请联系管理员</p><button class="btn btn-p" onclick="location.hash=''">返回</button></div></div>`;return;}
+    this._empId=empId;this._empName=emp.name;
+    this._empDispatches=this.state.config.dispatches.filter(d=>d.assignments.some(a=>a.employeeId===empId));
+    this.renderEmpShell('today');
+    await this.renderEmpToday();
+  },
+  renderEmpShell(activeTab){
+    document.getElementById('app').innerHTML=`<div class="emp"><div class="emp-hd"><div class="emp-hd-row"><div><h2>${this._empName}</h2><p>${this._empId} · ${new Date().toLocaleDateString('zh-CN')}</p></div><button class="emp-hd-back" onclick="location.hash=''">返回</button></div></div><div class="emp-body"><div class="emp-tabs"><div class="emp-tab ${activeTab==='today'?'on':''}" onclick="App.renderEmpToday()">今日填报</div><div class="emp-tab ${activeTab==='history'?'on':''}" onclick="App.renderEmpHistory()">填报历史</div></div><div id="empContent"><div class="empty">加载中...</div></div></div><div class="emp-sub" id="empSubBar"></div></div>`;
+  },
+  async renderEmpToday(){
+    this.renderEmpShell('today');
+    if(!this._empDispatches||this._empDispatches.length===0){document.getElementById('empContent').innerHTML='<div class="empty">暂无派单任务，请联系管理员分配</div>';document.getElementById('empSubBar').innerHTML='';return;}
+    this.showLoading('检查填报状态...');
+    const forms=await Promise.all(this._empDispatches.map(async d=>{const exist=await this.checkToday(this._empId,d.id);const a=d.assignments.find(x=>x.employeeId===this._empId);return{dis:d,assign:a,exist};}));
+    this.hideLoading();
+    const kbs=this.state.config.keyBusinesses||[];
+    const formHtml=forms.map((f,idx)=>{const e=f.exist;const prods=e?.products||{};const kbSel=e?.key_businesses||[];return `<div class="emp-card" id="form_${idx}"><div class="emp-card-t">${f.dis.name}<span>派单量: ${f.assign.count}</span></div><input type="hidden" id="disId_${idx}" value="${f.dis.id}"><input type="hidden" id="disName_${idx}" value="${f.dis.name}"><input type="hidden" id="existId_${idx}" value="${e?.id||''}"><div class="emp-3"><div class="fg"><label class="fl">处理量</label><input class="fi" id="pc_${idx}" type="number" inputmode="numeric" min="0" value="${e?.processing_count||''}" placeholder="0"></div><div class="fg"><label class="fl">呼通量</label><input class="fi" id="cc_${idx}" type="number" inputmode="numeric" min="0" value="${e?.call_connected||''}" placeholder="0"></div><div class="fg"><label class="fl">成交量</label><input class="fi" id="dc_${idx}" type="number" inputmode="numeric" min="0" value="${e?.deal_count||''}" placeholder="0"></div></div><div style="font-size:13px;font-weight:600;margin:10px 0 6px;color:var(--t1)">产品成交（数量+积分）</div>${PRODUCTS.map(p=>`<div class="emp-prod"><span class="emp-prod-n">${p.name}</span><div class="emp-prod-grp"><div><input class="emp-prod-i p_cnt" id="p${p.key}c_${idx}" type="number" inputmode="numeric" min="0" value="${prods[p.key]?.count||''}" placeholder="0"><div class="emp-prod-l">数量</div></div><div><input class="emp-prod-i p_scr" id="p${p.key}s_${idx}" type="number" inputmode="numeric" min="0" value="${prods[p.key]?.score||''}" placeholder="0"><div class="emp-prod-l">积分</div></div></div></div>`).join('')}${kbs.length>0?`<div style="font-size:13px;font-weight:600;margin:10px 0 6px">重点业务</div>${kbs.map(k=>`<div class="cb-row"><input type="checkbox" id="kb_${k.id}_${idx}" ${kbSel.includes(k.id)?'checked':''}><label for="kb_${k.id}_${idx}" style="font-size:14px;cursor:pointer">${k.name}</label></div>`).join('')}`:''}<div class="fg" style="margin-top:8px"><label class="fl">提升价值</label><input class="fi" id="tv_${idx}" type="number" inputmode="decimal" step="0.01" min="0" value="${e?.value_improvement||''}" placeholder="0"></div><div class="fg"><label class="fl">备注</label><textarea class="fi" id="rm_${idx}" placeholder="选填">${e?.remark||''}</textarea></div></div>`;}).join('');
+    document.getElementById('empContent').innerHTML=formHtml;
+    document.getElementById('empSubBar').innerHTML=`<button onclick="App.submitForm(${forms.length})">提交填报</button>`;
+  },
+  async submitForm(count){
+    const empId=this._empId;const emp=this.state.config.employees.find(e=>e.id===empId);if(!emp)return;
+    let success=0,errors=0;this.showLoading('提交中...');
+    for(let i=0;i<count;i++){
+      const disId=document.getElementById('disId_'+i).value;const disName=document.getElementById('disName_'+i).value;const existId=document.getElementById('existId_'+i).value;
+      const pc=parseInt(document.getElementById('pc_'+i).value)||0;const cc=parseInt(document.getElementById('cc_'+i).value)||0;const dc=parseInt(document.getElementById('dc_'+i).value)||0;const tv=parseFloat(document.getElementById('tv_'+i).value)||0;const rm=document.getElementById('rm_'+i).value.trim();
+      const prods={};let totalScore=0;
+      PRODUCTS.forEach(p=>{const cnt=parseInt(document.getElementById('p'+p.key+'c_'+i).value)||0;const scr=parseInt(document.getElementById('p'+p.key+'s_'+i).value)||0;if(cnt>0||scr>0){prods[p.key]={count:cnt,score:scr};totalScore+=scr;}});
+      const kbs=this.state.config.keyBusinesses||[];const kbSel=kbs.filter(k=>document.getElementById('kb_'+k.id+'_'+i)?.checked).map(k=>k.id);
+      const data={employee_id:empId,employee_name:emp.name,dispatch_id:disId,dispatch_name:disName,processing_count:pc,call_connected:cc,deal_count:dc,products:prods,key_businesses:kbSel,value_improvement:tv,total_score:totalScore,remark:rm};
+      const ok=existId?await this.updateSubmission(existId,data):await this.saveSubmission(data);
+      if(ok)success++;else errors++;
+    }
+    this.hideLoading();
+    document.getElementById('app').innerHTML=`<div class="emp"><div class="emp-ok"><div class="ic">${errors>0?'!':'✓'}</div><h3>${errors>0?'部分提交失败':'提交成功'}</h3><p>成功 ${success} 条${errors>0?'，失败 '+errors+' 条':''}<br>数据已同步至管理员看板</p><button class="btn btn-p" onclick="location.hash=''">完成</button><button class="btn btn-s" style="margin-left:8px" onclick="App.renderEmployee('${empId}')">继续填报</button></div></div>`;
+  },
+
+  // 填报历史
+  async renderEmpHistory(){
+    this.renderEmpShell('history');
+    this.showLoading('加载历史...');
+    const subs=await this.loadEmpSubmissions(this._empId);
+    this.hideLoading();
+    this._empHistorySubs=subs;
+    if(subs.length===0){document.getElementById('empContent').innerHTML='<div class="empty">暂无填报记录</div>';document.getElementById('empSubBar').innerHTML='';return;}
+    const html=subs.map(s=>{
+      const dt=new Date(s.created_at).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      return `<div class="emp-hist-item"><div class="emp-hist-info"><div class="emp-hist-date">${dt}</div><div class="emp-hist-name">${s.dispatch_name||'-'}</div><div class="emp-hist-stats"><span>处理 <b>${s.processing_count||0}</b></span><span>呼通 <b>${s.call_connected||0}</b></span><span>成交 <b>${s.deal_count||0}</b></span><span>积分 <b>${s.total_score||0}</b></span><span>提值 <b>${s.value_improvement||0}</b></span></div></div><div style="display:flex;flex-direction:column;gap:4px"><button class="btn btn-s btn-sm" onclick="App.renderEditSub('${s.id}')">编辑</button><button class="btn btn-d btn-sm" onclick="App.delEmpSub('${s.id}')">删除</button></div></div>`;
+    }).join('');
+    document.getElementById('empContent').innerHTML=html;
+    document.getElementById('empSubBar').innerHTML='';
+  },
+  renderEditSub(subId){
+    const sub=this._empHistorySubs?.find(s=>s.id===subId);
+    if(!sub){this.toast('记录未找到');return;}
+    const kbs=this.state.config.keyBusinesses||[];
+    const prods=sub.products||{};
+    const kbSel=sub.key_businesses||[];
+    const dt=new Date(sub.created_at).toLocaleDateString('zh-CN');
+    document.getElementById('empContent').innerHTML=`<div class="emp-card"><div class="emp-card-t">编辑: ${sub.dispatch_name||'-'}<span>${dt}</span></div><div class="emp-3"><div class="fg"><label class="fl">处理量</label><input class="fi" id="edit_pc" type="number" inputmode="numeric" min="0" value="${sub.processing_count||''}" placeholder="0"></div><div class="fg"><label class="fl">呼通量</label><input class="fi" id="edit_cc" type="number" inputmode="numeric" min="0" value="${sub.call_connected||''}" placeholder="0"></div><div class="fg"><label class="fl">成交量</label><input class="fi" id="edit_dc" type="number" inputmode="numeric" min="0" value="${sub.deal_count||''}" placeholder="0"></div></div><div style="font-size:13px;font-weight:600;margin:10px 0 6px;color:var(--t1)">产品成交（数量+积分）</div>${PRODUCTS.map(p=>`<div class="emp-prod"><span class="emp-prod-n">${p.name}</span><div class="emp-prod-grp"><div><input class="emp-prod-i" id="edit_p${p.key}c" type="number" inputmode="numeric" min="0" value="${prods[p.key]?.count||''}" placeholder="0"><div class="emp-prod-l">数量</div></div><div><input class="emp-prod-i" id="edit_p${p.key}s" type="number" inputmode="numeric" min="0" value="${prods[p.key]?.score||''}" placeholder="0"><div class="emp-prod-l">积分</div></div></div></div>`).join('')}${kbs.length>0?`<div style="font-size:13px;font-weight:600;margin:10px 0 6px">重点业务</div>${kbs.map(k=>`<div class="cb-row"><input type="checkbox" id="edit_kb_${k.id}" ${kbSel.includes(k.id)?'checked':''}><label for="edit_kb_${k.id}" style="font-size:14px;cursor:pointer">${k.name}</label></div>`).join('')}`:''}<div class="fg" style="margin-top:8px"><label class="fl">提升价值</label><input class="fi" id="edit_tv" type="number" inputmode="decimal" step="0.01" min="0" value="${sub.value_improvement||''}" placeholder="0"></div><div class="fg"><label class="fl">备注</label><textarea class="fi" id="edit_rm" placeholder="选填">${sub.remark||''}</textarea></div></div>`;
+    document.getElementById('empSubBar').innerHTML=`<div class="emp-sub two-btn" style="position:fixed;bottom:0;left:0;right:0;max-width:520px;margin:0 auto;background:#fff;padding:12px 16px;box-shadow:0 -2px 12px rgba(0,0,0,.08);z-index:100;display:flex;gap:8px"><button class="btn-cancel" style="flex:1;padding:14px;background:#f1f5f9;color:var(--t1);border:none;border-radius:10px;font-size:16px;cursor:pointer" onclick="App.renderEmpHistory()">取消</button><button style="flex:1;padding:14px;background:linear-gradient(135deg,var(--pri),var(--pri-l));color:#fff;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer" onclick="App.submitEditSub('${subId}')">保存修改</button></div>`;
+  },
+  async submitEditSub(subId){
+    const pc=parseInt(document.getElementById('edit_pc').value)||0;
+    const cc=parseInt(document.getElementById('edit_cc').value)||0;
+    const dc=parseInt(document.getElementById('edit_dc').value)||0;
+    const tv=parseFloat(document.getElementById('edit_tv').value)||0;
+    const rm=document.getElementById('edit_rm').value.trim();
+    const prods={};let totalScore=0;
+    PRODUCTS.forEach(p=>{const cnt=parseInt(document.getElementById('edit_p'+p.key+'c').value)||0;const scr=parseInt(document.getElementById('edit_p'+p.key+'s').value)||0;if(cnt>0||scr>0){prods[p.key]={count:cnt,score:scr};totalScore+=scr;}});
+    const kbs=this.state.config.keyBusinesses||[];const kbSel=kbs.filter(k=>document.getElementById('edit_kb_'+k.id)?.checked).map(k=>k.id);
+    const data={processing_count:pc,call_connected:cc,deal_count:dc,products:prods,key_businesses:kbSel,value_improvement:tv,total_score:totalScore,remark:rm};
+    this.showLoading('保存中...');
+    const ok=await this.updateSubmission(subId,data);
+    this.hideLoading();
+    if(ok){this.toast('修改成功');await this.renderEmpHistory();}else{this.toast('保存失败');}
+  },
+  async delEmpSub(subId){
+    if(!confirm('确认删除此条填报记录？'))return;
+    this.showLoading('删除中...');
+    await this.deleteSubmission(subId);
+    this.hideLoading();
+    this.toast('已删除');
+    await this.renderEmpHistory();
+  }
+};
+App.init();
+</script>
+</body>
+</html>
