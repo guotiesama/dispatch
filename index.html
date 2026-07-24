@@ -3,1433 +3,225 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
-<title>派单管控智能体 v13.2</title>
+<title>派单管控智能体 v13.3</title>
 <script src="https://cdn.bootcdn.net/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --primary:#4f46e5;--primary-light:#6366f1;--primary-dark:#3730a3;
-  --cyan:#06b6d4;--emerald:#10b981;--amber:#f59e0b;--rose:#f43f5e;
-  --purple:#a855f7;--c6:#7c3aed;
-  --bg:#f8fafc;--card:#fff;--text:#1e293b;--text2:#64748b;--border:#e2e8f0;
-  --shadow:0 1px 3px rgba(0,0,0,.1),0 1px 2px rgba(0,0,0,.06);
-  --shadow-lg:0 10px 15px -3px rgba(0,0,0,.1),0 4px 6px -2px rgba(0,0,0,.05);
-}
-body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
+:root{--primary:#4f46e5;--pl:#6366f1;--cyan:#06b6d4;--emerald:#10b981;--amber:#f59e0b;--rose:#f43f5e;--purple:#a855f7;--c6:#7c3aed;--bg:#f8fafc;--card:#fff;--text:#1e293b;--t2:#64748b;--bd:#e2e8f0;--sh:0 1px 3px rgba(0,0,0,.1)}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--text);font-size:14px;line-height:1.5}
 #entryPage{position:fixed;inset:0;background:#0a0a0a;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;overflow:hidden}
 #entryPage::before{content:'';position:absolute;width:600px;height:600px;background:radial-gradient(circle,rgba(79,70,229,.3),transparent 70%);top:50%;left:50%;transform:translate(-50%,-50%);animation:pulse 4s ease-in-out infinite}
 @keyframes pulse{0%,100%{opacity:.5;transform:translate(-50%,-50%) scale(1)}50%{opacity:1;transform:translate(-50%,-50%) scale(1.1)}}
-.entry-title{font-size:42px;font-weight:800;background:linear-gradient(135deg,#818cf8,#06b6d4,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:12px;text-align:center;animation:fadeUp .8s ease}
+.entry-title{font-size:42px;font-weight:800;background:linear-gradient(135deg,#818cf8,#06b6d4,#10b981);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-align:center;animation:fadeUp .8s ease}
 .entry-sub{color:#94a3b8;font-size:16px;margin-bottom:48px;text-align:center;animation:fadeUp .8s ease .2s both}
 .entry-cards{display:flex;gap:32px;animation:fadeUp .8s ease .4s both}
 .entry-card{background:rgba(255,255,255,.05);backdrop-filter:blur(20px);border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:48px 40px;cursor:pointer;transition:all .3s;text-align:center;min-width:240px}
-.entry-card:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.2);transform:translateY(-4px)}
+.entry-card:hover,.entry-card:active{background:rgba(255,255,255,.1);transform:translateY(-4px)}
 .entry-card .icon{font-size:48px;margin-bottom:16px}
 .entry-card .label{color:#e2e8f0;font-size:20px;font-weight:600}
 .entry-card .desc{color:#94a3b8;font-size:13px;margin-top:8px}
 @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 #adminPage{display:none;min-height:100vh}
-.top-bar{background:linear-gradient(135deg,var(--primary),var(--c6));color:#fff;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;box-shadow:0 2px 8px rgba(79,70,229,.3)}
+.top-bar{background:linear-gradient(135deg,var(--primary),var(--c6));color:#fff;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
 .top-bar h1{font-size:18px;font-weight:700}
-.top-bar .user-info{font-size:13px;opacity:.9;cursor:pointer}
-.tab-nav{background:#fff;border-bottom:1px solid var(--border);padding:0 16px;display:flex;gap:0;overflow-x:auto;position:sticky;top:56px;z-index:90}
+.top-bar .back{font-size:13px;cursor:pointer;opacity:.9}
+.tab-nav{background:#fff;border-bottom:1px solid var(--bd);padding:0 16px;display:flex;overflow-x:auto;position:sticky;top:56px;z-index:90}
 .tab-nav::-webkit-scrollbar{height:0}
-.tab-btn{padding:12px 16px;font-size:13px;font-weight:500;color:var(--text2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;white-space:nowrap;transition:all .2s}
-.tab-btn:hover{color:var(--primary)}
+.tab-btn{padding:12px 16px;font-size:13px;font-weight:500;color:var(--t2);cursor:pointer;border:none;background:none;border-bottom:2px solid transparent;white-space:nowrap}
 .tab-btn.active{color:var(--primary);border-bottom-color:var(--primary);font-weight:600}
 .tab-content{padding:20px;max-width:1400px;margin:0 auto}
-.tab-panel{display:none}.tab-panel.active{display:block}
-.card{background:#fff;border-radius:12px;box-shadow:var(--shadow);padding:20px;margin-bottom:16px;border:1px solid var(--border)}
+.card{background:#fff;border-radius:12px;box-shadow:var(--sh);padding:20px;margin-bottom:16px;border:1px solid var(--bd)}
 .card-title{font-size:16px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px}
-.card-title .badge{background:linear-gradient(135deg,var(--primary),var(--c6));color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
-.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
-.stat-card{background:#fff;border-radius:12px;padding:16px;box-shadow:var(--shadow);border:1px solid var(--border);position:relative;overflow:hidden}
-.stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
-.stat-card.c1::before{background:linear-gradient(90deg,var(--primary),var(--primary-light))}
-.stat-card.c2::before{background:linear-gradient(90deg,var(--cyan),#22d3ee)}
-.stat-card.c3::before{background:linear-gradient(90deg,var(--emerald),#34d399)}
-.stat-card.c4::before{background:linear-gradient(90deg,var(--amber),#fbbf24)}
-.stat-card.c5::before{background:linear-gradient(90deg,var(--rose),#fb7185)}
-.stat-card.c6::before{background:linear-gradient(90deg,var(--purple),#c084fc)}
-.stat-card .label{font-size:12px;color:var(--text2);margin-bottom:4px}
-.stat-card .value{font-size:24px;font-weight:700}
-.stat-card.c1 .value{color:var(--primary)}.stat-card.c2 .value{color:var(--cyan)}
-.stat-card.c3 .value{color:var(--emerald)}.stat-card.c4 .value{color:var(--amber)}
-.stat-card.c5 .value{color:var(--rose)}.stat-card.c6 .value{color:var(--purple)}
-.data-table{width:100%;border-collapse:collapse;font-size:13px}
-.data-table th{background:#f8fafc;padding:10px 12px;text-align:left;font-weight:600;color:var(--text2);border-bottom:2px solid var(--border);white-space:nowrap}
-.data-table td{padding:10px 12px;border-bottom:1px solid var(--border)}
-.data-table tr:hover td{background:#f1f5f9}
+.badge{background:linear-gradient(135deg,var(--primary),var(--c6));color:#fff;font-size:11px;padding:2px 8px;border-radius:10px;font-weight:500}
+.sg{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:20px}
+.sc{background:#fff;border-radius:12px;padding:16px;box-shadow:var(--sh);border:1px solid var(--bd);position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px}
+.sc.c1::before{background:linear-gradient(90deg,var(--primary),var(--pl))}
+.sc.c2::before{background:linear-gradient(90deg,var(--cyan),#22d3ee)}
+.sc.c3::before{background:linear-gradient(90deg,var(--emerald),#34d399)}
+.sc.c4::before{background:linear-gradient(90deg,var(--amber),#fbbf24)}
+.sc.c5::before{background:linear-gradient(90deg,var(--rose),#fb7185)}
+.sc.c6::before{background:linear-gradient(90deg,var(--purple),#c084fc)}
+.sc .lb{font-size:12px;color:var(--t2);margin-bottom:4px}
+.sc .vl{font-size:24px;font-weight:700}
+.sc.c1 .vl{color:var(--primary)}.sc.c2 .vl{color:var(--cyan)}.sc.c3 .vl{color:var(--emerald)}.sc.c4 .vl{color:var(--amber)}.sc.c5 .vl{color:var(--rose)}.sc.c6 .vl{color:var(--purple)}
+.dt{width:100%;border-collapse:collapse;font-size:13px}
+.dt th{background:#f8fafc;padding:10px 12px;text-align:left;font-weight:600;color:var(--t2);border-bottom:2px solid var(--bd);white-space:nowrap}
+.dt td{padding:10px 12px;border-bottom:1px solid var(--bd)}
+.dt tr:hover td{background:#f1f5f9}
 .btn{padding:8px 16px;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .2s;display:inline-flex;align-items:center;gap:6px}
-.btn-primary{background:linear-gradient(135deg,var(--primary),var(--c6));color:#fff}
-.btn-primary:hover{box-shadow:0 4px 12px rgba(79,70,229,.4);transform:translateY(-1px)}
+.btn-p{background:linear-gradient(135deg,var(--primary),var(--c6));color:#fff}
+.btn-p:hover{box-shadow:0 4px 12px rgba(79,70,229,.4)}
 .btn-sm{padding:5px 10px;font-size:12px;border-radius:6px}
-.btn-danger{background:var(--rose);color:#fff}
-.btn-outline{background:#fff;color:var(--primary);border:1px solid var(--primary)}
-.btn-outline:hover{background:var(--primary);color:#fff}
-.btn-success{background:var(--emerald);color:#fff}
-.btn-cyan{background:var(--cyan);color:#fff}
-.form-group{margin-bottom:12px}
-.form-group label{display:block;font-size:13px;font-weight:500;margin-bottom:4px;color:var(--text2)}
-.form-group input,.form-group select,.form-group textarea{width:100%;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:14px;transition:border .2s}
-.form-group input:focus,.form-group select:focus,.form-group textarea:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
-.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center}
-.modal-overlay.show{display:flex}
-.modal{background:#fff;border-radius:16px;padding:24px;width:90%;max-width:700px;max-height:85vh;overflow-y:auto;box-shadow:0 25px 50px rgba(0,0,0,.15)}
-.modal-title{font-size:18px;font-weight:700;margin-bottom:16px}
-.chart-box{background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid var(--border);box-shadow:var(--shadow)}
-.chart-box canvas{width:100%!important;max-height:300px}
-.ym-selector{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-.ym-selector select{padding:6px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px}
-.chk-wrap{display:inline-flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;margin:2px 4px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;transition:all .2s}
-.chk-wrap:has(input:checked){background:rgba(79,70,229,.1);border-color:var(--primary)}
-.chk-wrap input{accent-color:var(--primary)}
+.btn-d{background:var(--rose);color:#fff}
+.btn-o{background:#fff;color:var(--primary);border:1px solid var(--primary)}
+.fg{margin-bottom:12px}
+.fg label{display:block;font-size:13px;font-weight:500;margin-bottom:4px;color:var(--t2)}
+.fg input,.fg select,.fg textarea{width:100%;padding:8px 12px;border:1px solid var(--bd);border-radius:8px;font-size:14px}
+.fg input:focus,.fg select:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(79,70,229,.1)}
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center}
+.mo.show{display:flex}
+.mo-c{background:#fff;border-radius:16px;padding:24px;width:90%;max-width:700px;max-height:85vh;overflow-y:auto;box-shadow:0 25px 50px rgba(0,0,0,.15)}
+.mo-t{font-size:18px;font-weight:700;margin-bottom:16px}
+.cb{background:#fff;border-radius:12px;padding:16px;margin-bottom:16px;border:1px solid var(--bd);box-shadow:var(--sh)}
+.cb canvas{width:100%!important;max-height:300px}
+.ym{display:flex;align-items:center;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.ym select{padding:6px 12px;border:1px solid var(--bd);border-radius:8px;font-size:13px}
+.cw{display:inline-flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;margin:2px 4px;padding:4px 8px;border:1px solid var(--bd);border-radius:6px}
+.cw:has(input:checked){background:rgba(79,70,229,.1);border-color:var(--primary)}
+.cw input{accent-color:var(--primary)}
 .tag{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;font-weight:500}
-.tag-emp{background:rgba(79,70,229,.1);color:var(--primary)}
-.tag-dis{background:rgba(6,182,212,.1);color:var(--cyan)}
+.tag-e{background:rgba(79,70,229,.1);color:var(--primary)}
+.tag-d{background:rgba(6,182,212,.1);color:var(--cyan)}
 #empPage{display:none;min-height:100vh;background:var(--bg)}
-.emp-header{background:linear-gradient(135deg,var(--primary),var(--c6));color:#fff;padding:20px;text-align:center}
-.emp-header h2{font-size:20px;margin-bottom:4px}
-.emp-tabs{display:flex;background:#fff;border-bottom:1px solid var(--border)}
-.emp-tab{flex:1;padding:12px;text-align:center;font-size:14px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);transition:all .2s}
-.emp-tab.active{color:var(--primary);border-bottom-color:var(--primary)}
-.emp-body{padding:16px;max-width:600px;margin:0 auto}
-.emp-panel{display:none}.emp-panel.active{display:block}
-.grad-text{background:linear-gradient(135deg,var(--primary),var(--cyan));-webkit-background-clip:text;-webkit-text-fill-color:transparent;font-weight:700}
+.eh{background:linear-gradient(135deg,var(--primary),var(--c6));color:#fff;padding:20px;text-align:center}
+.eh h2{font-size:20px;margin-bottom:4px}
+.et{display:flex;background:#fff;border-bottom:1px solid var(--bd)}
+.et div{flex:1;padding:12px;text-align:center;font-size:14px;font-weight:500;cursor:pointer;border-bottom:2px solid transparent;color:var(--t2)}
+.et div.active{color:var(--primary);border-bottom-color:var(--primary)}
+.eb{padding:16px;max-width:600px;margin:0 auto}
+.ld{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;color:var(--t2)}
+.sp{width:32px;height:32px;border:3px solid var(--bd);border-top-color:var(--primary);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ei{padding:12px;border:1px solid var(--bd);border-radius:8px;margin-bottom:6px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .15s}
+.ei:active{background:rgba(79,70,229,.06);border-color:var(--primary)}
+.err{margin-top:12px;padding:12px;background:#fef2f2;border-radius:8px;border:1px solid #fecaca;color:var(--rose);font-size:13px}
+.at{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.at th{background:#f1f5f9;padding:6px 8px;text-align:left;font-size:12px}
+.at td{padding:6px 8px;border-bottom:1px solid var(--bd)}
+.at input{width:80px;padding:4px 8px;border:1px solid var(--bd);border-radius:6px;font-size:13px;text-align:center}
+.at input:focus{outline:none;border-color:var(--primary)}
+.rr{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--bd)}
+.rn{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
+.r1{background:linear-gradient(135deg,#fbbf24,#f59e0b)}
+.r2{background:linear-gradient(135deg,#94a3b8,#64748b)}
+.r3{background:linear-gradient(135deg,#d97706,#b45309)}
+.r0{background:#e2e8f0;color:var(--t2)}
+.ri{flex:1}
+.rb{height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;margin-top:4px}
+.rf{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--primary),var(--cyan))}
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-thumb{background:#cbd5e1;border-radius:3px}
 .toast{position:fixed;top:70px;right:20px;background:#1e293b;color:#fff;padding:12px 20px;border-radius:10px;font-size:13px;z-index:9999;opacity:0;transform:translateX(20px);transition:all .3s}
 .toast.show{opacity:1;transform:translateX(0)}
-.toast.success{background:var(--emerald)}.toast.error{background:var(--rose)}
-.empty{text-align:center;padding:40px 20px;color:var(--text2)}
-.empty .icon{font-size:48px;margin-bottom:12px;opacity:.5}
-.rank-row{display:flex;align-items:center;gap:12px;padding:10px 16px;border-bottom:1px solid var(--border)}
-.rank-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0}
-.rank-1{background:linear-gradient(135deg,#fbbf24,#f59e0b)}
-.rank-2{background:linear-gradient(135deg,#94a3b8,#64748b)}
-.rank-3{background:linear-gradient(135deg,#d97706,#b45309)}
-.rank-other{background:#e2e8f0;color:var(--text2)}
-.rank-info{flex:1}.rank-name{font-weight:600;font-size:14px}
-.rank-score{font-size:13px;color:var(--text2)}
-.rank-bar{height:6px;background:#f1f5f9;border-radius:3px;overflow:hidden;margin-top:4px}
-.rank-bar-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--primary),var(--cyan))}
-.alloc-table{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
-.alloc-table th{background:#f1f5f9;padding:6px 8px;text-align:left;font-size:12px}
-.alloc-table td{padding:6px 8px;border-bottom:1px solid var(--border)}
-.alloc-table input{width:80px;padding:4px 8px;border:1px solid var(--border);border-radius:6px;font-size:13px;text-align:center}
-.alloc-table input:focus{outline:none;border-color:var(--primary)}
-@media(max-width:768px){
-  .entry-cards{flex-direction:column;gap:16px}
-  .entry-card{padding:32px 24px;min-width:auto}
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
-  .tab-btn{padding:10px 12px;font-size:12px}
-  .tab-content{padding:12px}
-  .modal{width:95%;padding:16px}
-  .emp-body{padding:12px}
-}
+.toast.ok{background:var(--emerald)}.toast.err{background:var(--rose)}
+.empty{text-align:center;padding:40px 20px;color:var(--t2)}
+@media(max-width:768px){.entry-cards{flex-direction:column;gap:16px}.entry-card{padding:32px 24px;min-width:auto}.sg{grid-template-columns:repeat(2,1fr)}.tab-btn{padding:10px 12px;font-size:12px}.tab-content{padding:12px}.mo-c{width:95%;padding:16px}.eb{padding:12px}}
 </style>
 </head>
 <body>
-<!-- 入口页 -->
 <div id="entryPage">
   <div class="entry-title">派单管控智能体</div>
-  <div class="entry-sub">电信社区营销 · 数字化管控平台 v13.2</div>
+  <div class="entry-sub">电信社区营销 · 数字化管控平台 v13.3</div>
   <div class="entry-cards">
-    <div class="entry-card" onclick="enterAdmin()">
-      <div class="icon">🛡️</div>
-      <div class="label">管理员端</div>
-      <div class="desc">数据管控 · 分析决策</div>
-    </div>
-    <div class="entry-card" onclick="enterEmp()">
-      <div class="icon">📱</div>
-      <div class="label">员工填报</div>
-      <div class="desc">移动填报 · 历史查询</div>
-    </div>
+    <div class="entry-card" onclick="goAdmin()"><div class="icon">🛡️</div><div class="label">管理员端</div><div class="desc">数据管控 · 分析决策</div></div>
+    <div class="entry-card" onclick="goEmp()"><div class="icon">📱</div><div class="label">员工填报</div><div class="desc">移动填报 · 历史查询</div></div>
   </div>
 </div>
-
-<!-- 管理员端 -->
 <div id="adminPage">
-  <div class="top-bar">
-    <h1>📋 派单管控智能体</h1>
-    <div class="user-info" onclick="backToEntry()">返回入口</div>
-  </div>
+  <div class="top-bar"><h1>📋 派单管控智能体</h1><div class="back" onclick="goEntry()">返回入口</div></div>
   <div class="tab-nav" id="tabNav"></div>
   <div class="tab-content" id="tabContent"></div>
 </div>
-
-<!-- 员工端 -->
 <div id="empPage">
-  <div class="emp-header">
-    <h2 id="empTitle">员工填报</h2>
-    <div id="empSubtitle" style="font-size:13px;opacity:.8"></div>
-  </div>
-  <div class="emp-tabs">
-    <div class="emp-tab active" onclick="switchEmpTab(0)">📝 填报</div>
-    <div class="emp-tab" onclick="switchEmpTab(1)">📜 历史</div>
-  </div>
-  <div class="emp-body" id="empBody"></div>
-  <div style="text-align:center;padding:12px;cursor:pointer;color:var(--text2);font-size:13px" onclick="backToEntry()">返回入口</div>
+  <div class="eh"><h2 id="empTitle">员工填报</h2><div id="empSub" style="font-size:13px;opacity:.8"></div></div>
+  <div class="et"><div class="active" onclick="empTab(0)">📝 填报</div><div onclick="empTab(1)">📜 历史</div></div>
+  <div class="eb" id="empBody"><div class="ld"><div class="sp"></div><div>加载中...</div></div></div>
+  <div style="text-align:center;padding:12px;cursor:pointer;color:var(--t2);font-size:13px" onclick="goEntry()">返回入口</div>
 </div>
-
-<div class="modal-overlay" id="modalOverlay" onclick="if(event.target===this)closeModal()">
-  <div class="modal" id="modalContent"></div>
-</div>
+<div class="mo" id="moOv" onclick="if(event.target===this)closeMo()"><div class="mo-c" id="moCt"></div></div>
 <div class="toast" id="toast"></div>
-
 <script>
-// ====== 配置 ======
-const SUPABASE_URL = 'https://vagtmsyzoehkakdejgkw.supabase.co';
-const SUPABASE_KEY = 'sb_publishable_O0aq7OG9x4DkuizZ-E4J6w_uuNu30gf';
-const HEADERS = {
-  'apikey': SUPABASE_KEY,
-  'Authorization': 'Bearer ' + SUPABASE_KEY,
-  'Content-Type': 'application/json',
-  'Prefer': 'return=representation'
-};
-
-const PRODUCTS = [
-  {key:'P_FTTR',name:'FTTR'},{key:'P_ACAP',name:'ACAP'},{key:'P_ZP',name:'中屏'},
-  {key:'P_BZQG',name:'标准迁改'},{key:'P_ZDYQG',name:'自定义迁改'},
-  {key:'P_JZ10U',name:'加装10元以上'},{key:'P_JZ10',name:'加装10元'},{key:'P_TD',name:'托底'}
-];
-
-const TABS = [
-  {id:'employees',label:'👥 员工管理'},
-  {id:'dispatches',label:'📋 派单管理'},
-  {id:'products',label:'⭐ 重点业务'},
-  {id:'groups',label:'🏷️ 人员分组'},
-  {id:'dashboard',label:'📊 总看板'},
-  {id:'analysis',label:'🔬 人员分析'},
-  {id:'ranks',label:'🏆 业绩排行'},
-  {id:'qrentry',label:'🔗 填报入口'},
-  {id:'export',label:'📥 数据导出'}
-];
-
-// ====== 状态 ======
-let state = {
-  employees: [],
-  dispatches: [],
-  products: PRODUCTS.map(p=>({...p})),
-  groups: [],
-  submissions: [],
-  activeTab: 'employees',
-  dashYear: new Date().getFullYear(),
-  dashMonth: new Date().getMonth() + 1,
-  empId: '',
-  empName: ''
-};
-
-// ====== Supabase API ======
-async function apiGet(table, query='') {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}${query}`, {headers: HEADERS});
-  if(!r.ok) throw new Error(`API ${table}: ${r.status}`);
-  return r.json();
-}
-async function apiPost(table, data) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}`, {
-    method:'POST', headers: HEADERS, body: JSON.stringify(data)
-  });
-  if(!r.ok && r.status!==409) throw new Error(`POST ${table}: ${r.status}`);
-  return r.status===409 ? null : r.json();
-}
-async function apiPatch(table, id, data) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method:'PATCH', headers: {...HEADERS, 'Prefer':'return=representation'}, body: JSON.stringify(data)
-  });
-  if(!r.ok) throw new Error(`PATCH ${table}: ${r.status}`);
-  return r.json();
-}
-async function apiDelete(table, id) {
-  const r = await fetch(`${SUPABASE_URL}/rest/v1/${table}?id=eq.${id}`, {
-    method:'DELETE', headers: HEADERS
-  });
-  if(!r.ok) throw new Error(`DELETE ${table}: ${r.status}`);
-}
-
-// ====== 数据加载 ======
-async function loadConfig() {
-  try {
-    const rows = await apiGet('dispatch_config','?select=id,key,data');
-    rows.forEach(r => {
-      if(r.key === 'employees') state.employees = r.data || [];
-      if(r.key === 'dispatches') state.dispatches = r.data || [];
-      if(r.key === 'products' && r.data && r.data.length) state.products = r.data;
-      if(r.key === 'groups') state.groups = r.data || [];
-    });
-  } catch(e) { console.warn('加载配置失败:', e); }
-}
-async function loadSubmissions() {
-  try {
-    state.submissions = await apiGet('dispatch_submissions','?select=*&order=created_at.desc');
-  } catch(e) { console.warn('加载填报失败:', e); state.submissions = []; }
-  return state.submissions;
-}
-async function saveConfig(key, data) {
-  try {
-    const rows = await apiGet('dispatch_config',`?key=eq.${key}`);
-    if(rows.length) await apiPatch('dispatch_config', rows[0].id, {data: data});
-    else await apiPost('dispatch_config', {key: key, data: data});
-  } catch(e) { console.error('保存配置失败:', e); }
-}
-
-// ====== 工具 ======
-function toast(msg, type='') {
-  const t = document.getElementById('toast');
-  t.textContent = msg; t.className = 'toast show ' + type;
-  setTimeout(() => t.className = 'toast', 2500);
-}
-function closeModal() { document.getElementById('modalOverlay').classList.remove('show'); }
-function openModal(html) {
-  document.getElementById('modalContent').innerHTML = html;
-  document.getElementById('modalOverlay').classList.add('show');
-}
-function findEmp(query) {
-  const q = query.trim().toLowerCase();
-  return state.employees.find(e => e.id.toLowerCase() === q || e.name === query.trim());
-}
-
-// ====== 入口 ======
-function enterAdmin() {
-  document.getElementById('entryPage').style.display = 'none';
-  document.getElementById('adminPage').style.display = 'block';
-  initAdmin();
-}
-function enterEmp() {
-  const hash = location.hash;
-  if(hash.startsWith('#emp=')) state.empId = hash.substring(5);
-  document.getElementById('entryPage').style.display = 'none';
-  document.getElementById('empPage').style.display = 'block';
-  initEmp();
-}
-function backToEntry() {
-  document.getElementById('adminPage').style.display = 'none';
-  document.getElementById('empPage').style.display = 'none';
-  document.getElementById('entryPage').style.display = 'flex';
-}
-
-// ====== 管理员端 ======
-async function initAdmin() {
-  await loadConfig();
-  await loadSubmissions();
-  renderTabNav();
-  switchTab(state.activeTab);
-  setInterval(async () => {
-    await loadSubmissions();
-    if(state.activeTab === 'dashboard') renderDashboard();
-    if(state.activeTab === 'ranks') renderRanks();
-  }, 15000);
-}
-function renderTabNav() {
-  const nav = document.getElementById('tabNav');
-  nav.innerHTML = TABS.map(t =>
-    `<div class="tab-btn ${t.id===state.activeTab?'active':''}" onclick="switchTab('${t.id}')">${t.label}</div>`
-  ).join('');
-}
-function switchTab(id) {
-  state.activeTab = id;
-  document.querySelectorAll('.tab-btn').forEach((b,i) => {
-    b.classList.toggle('active', TABS[i].id === id);
-  });
-  const ct = document.getElementById('tabContent');
-  ct.innerHTML = '<div class="tab-panel active" id="panel_'+id+'"></div>';
-  const renderers = {
-    employees:renderEmployees, dispatches:renderDispatches, products:renderProducts,
-    groups:renderGroups, dashboard:renderDashboard, analysis:renderAnalysis,
-    ranks:renderRanks, qrentry:renderQrEntry, export:renderExport
-  };
-  if(renderers[id]) renderers[id]();
-}
-
-// ====== 员工管理 ======
-function renderEmployees() {
-  const p = document.getElementById('panel_employees');
-  let html = `<div class="card">
-    <div class="card-title">👥 员工管理 <span class="badge">${state.employees.length}人</span></div>
-    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
-      <button class="btn btn-primary" onclick="addEmployee()">➕ 添加员工</button>
-      <button class="btn btn-outline" onclick="batchImport()">📦 批量导入</button>
-    </div>
-    <div style="overflow-x:auto">
-    <table class="data-table"><thead><tr><th>工号</th><th>姓名</th><th>分组</th><th>操作</th></tr></thead><tbody>`;
-  state.employees.forEach((e,i) => {
-    html += `<tr><td>${e.id}</td><td>${e.name}</td><td><span class="tag tag-dis">${e.group||'未分组'}</span></td>
-      <td><button class="btn btn-sm btn-outline" onclick="editEmployee(${i})">编辑</button>
-      <button class="btn btn-sm btn-danger" onclick="delEmployee(${i})">删除</button></td></tr>`;
-  });
-  if(!state.employees.length) html += '<tr><td colspan="4" class="empty">暂无员工数据</td></tr>';
-  html += '</tbody></table></div></div>';
-  p.innerHTML = html;
-}
-function addEmployee() {
-  openModal(`<div class="modal-title">添加员工</div>
-    <div class="form-group"><label>工号</label><input id="mEmpId" placeholder="如 E01"></div>
-    <div class="form-group"><label>姓名</label><input id="mEmpName" placeholder="姓名"></div>
-    <div class="form-group"><label>分组</label><select id="mEmpGroup"><option value="">未分组</option>
-      ${state.groups.map(g=>'<option value="'+g.name+'">'+g.name+'</option>').join('')}</select></div>
-    <div style="text-align:right;margin-top:16px">
-      <button class="btn btn-primary" onclick="saveEmployee()">保存</button>
-      <button class="btn btn-outline" onclick="closeModal()" style="margin-left:8px">取消</button>
-    </div>`);
-}
-function saveEmployee() {
-  const id = document.getElementById('mEmpId').value.trim();
-  const name = document.getElementById('mEmpName').value.trim();
-  const group = document.getElementById('mEmpGroup').value;
-  if(!id || !name) return toast('请填写工号和姓名','error');
-  if(state.employees.find(e=>e.id.toLowerCase()===id.toLowerCase())) return toast('工号已存在','error');
-  state.employees.push({id, name, group: group||''});
-  saveConfig('employees', state.employees).then(()=>{closeModal();renderEmployees();toast('添加成功','success');});
-}
-function editEmployee(i) {
-  const e = state.employees[i];
-  openModal(`<div class="modal-title">编辑员工</div>
-    <div class="form-group"><label>工号</label><input id="mEmpId" value="${e.id}" disabled></div>
-    <div class="form-group"><label>姓名</label><input id="mEmpName" value="${e.name}"></div>
-    <div class="form-group"><label>分组</label><select id="mEmpGroup"><option value="">未分组</option>
-      ${state.groups.map(g=>'<option value="'+g.name+'" '+(g.name===e.group?'selected':'')+'>'+g.name+'</option>').join('')}</select></div>
-    <div style="text-align:right;margin-top:16px">
-      <button class="btn btn-primary" onclick="updateEmployee(${i})">保存</button>
-      <button class="btn btn-outline" onclick="closeModal()" style="margin-left:8px">取消</button>
-    </div>`);
-}
-function updateEmployee(i) {
-  state.employees[i].name = document.getElementById('mEmpName').value.trim();
-  state.employees[i].group = document.getElementById('mEmpGroup').value;
-  saveConfig('employees', state.employees).then(()=>{closeModal();renderEmployees();toast('已更新','success');});
-}
-function delEmployee(i) {
-  if(!confirm('确定删除该员工？')) return;
-  state.employees.splice(i,1);
-  saveConfig('employees', state.employees).then(()=>{renderEmployees();toast('已删除','success');});
-}
-function batchImport() {
-  openModal(`<div class="modal-title">批量导入员工</div>
-    <div class="form-group"><label>粘贴员工数据（每行一条，格式：工号,姓名,分组）</label>
-    <textarea id="mBatchText" rows="8" placeholder="E01,张三,A组&#10;E02,李四,B组"></textarea></div>
-    <div class="form-group"><label>或上传CSV文件</label><input type="file" id="mBatchFile" accept=".csv,.txt" onchange="readCSV(this)"></div>
-    <div style="text-align:right;margin-top:16px">
-      <button class="btn btn-primary" onclick="doBatchImport()">导入</button>
-      <button class="btn btn-outline" onclick="closeModal()" style="margin-left:8px">取消</button>
-    </div>`);
-}
-function readCSV(input) {
-  const file = input.files[0]; if(!file) return;
-  const reader = new FileReader();
-  reader.onload = e => { document.getElementById('mBatchText').value = e.target.result; };
-  reader.readAsText(file);
-}
-function doBatchImport() {
-  const text = document.getElementById('mBatchText').value.trim();
-  if(!text) return toast('请输入数据','error');
-  const lines = text.split('\n').filter(l=>l.trim());
-  let count = 0;
-  lines.forEach(line => {
-    const parts = line.split(/[,，\t]/).map(s=>s.trim());
-    if(parts.length >= 2) {
-      const id = parts[0], name = parts[1], group = parts[2]||'';
-      if(!state.employees.find(e=>e.id.toLowerCase()===id.toLowerCase())) {
-        state.employees.push({id, name, group});
-        count++;
-      }
-    }
-  });
-  saveConfig('employees', state.employees).then(()=>{closeModal();renderEmployees();toast(`成功导入${count}人`,'success');});
-}
-
-// ====== ★ 派单管理（v13.2升级）======
-function renderDispatches() {
-  const p = document.getElementById('panel_dispatches');
-  let html = `<div class="card">
-    <div class="card-title">📋 派单管理 <span class="badge">${state.dispatches.length}个</span></div>
-    <div style="margin-bottom:12px">
-      <button class="btn btn-primary" onclick="addDispatch()">➕ 新建派单</button>
-    </div>
-    <div style="overflow-x:auto">
-    <table class="data-table"><thead><tr>
-      <th>派单名称</th><th>总派单量</th><th>已分配量</th><th>分配员工</th><th>操作</th>
-    </tr></thead><tbody>`;
-  state.dispatches.forEach((d,i) => {
-    const alloc = d.allocations || [];
-    const totalAlloc = alloc.reduce((s,a)=>s+(Number(a.pdl)||0),0);
-    const empList = alloc.map(a => {
-      const emp = state.employees.find(x=>x.id===a.empId);
-      return emp ? `${emp.name}(${a.pdl||0})` : `${a.empId}(${a.pdl||0})`;
-    }).join('、') || '未分配';
-    html += `<tr>
-      <td><strong>${d.name}</strong></td>
-      <td style="font-weight:600;color:var(--primary)">${d.total_pdl||0}</td>
-      <td>${totalAlloc}</td>
-      <td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${empList}</td>
-      <td><button class="btn btn-sm btn-outline" onclick="editDispatch(${i})">编辑</button>
-      <button class="btn btn-sm btn-danger" onclick="delDispatch(${i})">删除</button></td></tr>`;
-  });
-  if(!state.dispatches.length) html += '<tr><td colspan="5" class="empty">暂无派单</td></tr>';
-  html += '</tbody></table></div></div>';
-  p.innerHTML = html;
-}
-
-function addDispatch() {
-  const empCheckboxes = state.employees.map(e =>
-    `<label class="chk-wrap"><input type="checkbox" value="${e.id}" class="dis-emp-chk" onchange="onDisEmpCheck()">${e.name}(${e.id})</label>`
-  ).join('');
-
-  openModal(`<div class="modal-title">新建派单</div>
-    <div class="form-group"><label>派单名称</label><input id="mDisName" placeholder="如 7月社区营销"></div>
-    <div class="form-group"><label>总派单量</label><input type="number" id="mDisTotalPdl" inputmode="numeric" value="0" min="0" placeholder="输入总派单量" oninput="onDisEmpCheck()"></div>
-    <div class="form-group"><label>分配员工</label>
-      <div style="margin-top:4px"><label style="cursor:pointer"><input type="checkbox" onchange="toggleAllEmps(this)"> 全选</label></div>
-      <div id="mDisEmps" style="margin-top:4px">${empCheckboxes}</div>
-    </div>
-    <div class="form-group">
-      <label>分配方式</label>
-      <div style="display:flex;gap:8px;margin-top:4px">
-        <label style="cursor:pointer"><input type="radio" name="allocMode" value="avg" checked onchange="onAllocModeChange()"> 平均分配</label>
-        <label style="cursor:pointer"><input type="radio" name="allocMode" value="manual" onchange="onAllocModeChange()"> 手动分配</label>
-      </div>
-    </div>
-    <div id="allocPreview"></div>
-    <div style="text-align:right;margin-top:16px">
-      <button class="btn btn-primary" onclick="saveDispatch()">保存</button>
-      <button class="btn btn-outline" onclick="closeModal()" style="margin-left:8px">取消</button>
-    </div>`);
-}
-
-function toggleAllEmps(el) {
-  document.querySelectorAll('.dis-emp-chk').forEach(c => c.checked = el.checked);
-  onDisEmpCheck();
-}
-
-function onDisEmpCheck() {
-  onAllocModeChange();
-}
-
-function onAllocModeChange() {
-  const mode = document.querySelector('input[name="allocMode"]:checked')?.value || 'avg';
-  const totalPdl = Number(document.getElementById('mDisTotalPdl')?.value) || 0;
-  const checked = [...document.querySelectorAll('.dis-emp-chk:checked')];
-  const preview = document.getElementById('allocPreview');
-  if(!preview) return;
-
-  if(!checked.length) {
-    preview.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px">请选择员工</div>';
-    return;
-  }
-
-  let html = `<div style="margin-top:8px;border-top:1px solid var(--border);padding-top:12px">
-    <div style="font-weight:600;margin-bottom:8px">分配明细 <span class="tag tag-dis">总派单量: ${totalPdl}</span></div>
-    <table class="alloc-table"><thead><tr><th>员工</th><th>分配派单量</th></tr></thead><tbody>`;
-
-  if(mode === 'avg') {
-    const each = Math.floor(totalPdl / checked.length);
-    const remainder = totalPdl - each * checked.length;
-    checked.forEach((c, i) => {
-      const emp = state.employees.find(e=>e.id===c.value);
-      const val = each + (i < remainder ? 1 : 0);
-      html += `<tr><td>${emp?emp.name:c.value}</td><td style="text-align:center;font-weight:600">${val}</td></tr>`;
-    });
-  } else {
-    checked.forEach((c, i) => {
-      const emp = state.employees.find(e=>e.id===c.value);
-      html += `<tr><td>${emp?emp.name:c.value}</td>
-        <td><input type="number" class="alloc-input" data-emp-id="${c.value}" inputmode="numeric" value="0" min="0" onchange="updateAllocSum()"></td></tr>`;
-    });
-  }
-
-  html += '</tbody></table>';
-  if(mode === 'manual') {
-    html += `<div id="allocSum" style="margin-top:8px;font-size:13px;color:var(--text2)">已分配: 0 / ${totalPdl}</div>`;
-  }
-  html += '</div>';
-  preview.innerHTML = html;
-}
-
-function updateAllocSum() {
-  const totalPdl = Number(document.getElementById('mDisTotalPdl')?.value) || 0;
-  const inputs = document.querySelectorAll('.alloc-input');
-  let sum = 0;
-  inputs.forEach(inp => { sum += Number(inp.value) || 0; });
-  const sumEl = document.getElementById('allocSum');
-  if(sumEl) {
-    const color = sum !== totalPdl ? 'var(--rose)' : 'var(--emerald)';
-    sumEl.innerHTML = `<span style="color:${color};font-weight:600">已分配: ${sum} / ${totalPdl}</span>${sum !== totalPdl ? ' <span style="color:var(--rose)">（不等于总派单量）</span>':''}`;
-  }
-}
-
-function saveDispatch() {
-  const name = document.getElementById('mDisName').value.trim();
-  const totalPdl = Number(document.getElementById('mDisTotalPdl').value) || 0;
-  if(!name) return toast('请输入派单名称','error');
-  const checked = [...document.querySelectorAll('.dis-emp-chk:checked')];
-  if(!checked.length) return toast('请选择分配员工','error');
-
-  const mode = document.querySelector('input[name="allocMode"]:checked')?.value || 'avg';
-  const allocations = [];
-
-  if(mode === 'avg') {
-    const each = Math.floor(totalPdl / checked.length);
-    const remainder = totalPdl - each * checked.length;
-    checked.forEach((c, i) => {
-      allocations.push({
-        empId: c.value,
-        pdl: each + (i < remainder ? 1 : 0)
-      });
-    });
-  } else {
-    let sum = 0;
-    document.querySelectorAll('.alloc-input').forEach(inp => {
-      const val = Number(inp.value) || 0;
-      sum += val;
-      allocations.push({ empId: inp.dataset.empId, pdl: val });
-    });
-    if(sum !== totalPdl) {
-      if(!confirm(`已分配合计${sum}，与总派单量${totalPdl}不一致，仍要保存吗？`)) return;
-    }
-  }
-
-  state.dispatches.push({name, total_pdl: totalPdl, allocations});
-  saveConfig('dispatches', state.dispatches).then(()=>{closeModal();renderDispatches();toast('创建成功','success');});
-}
-
-function editDispatch(i) {
-  const d = state.dispatches[i];
-  const empCheckboxes = state.employees.map(e => {
-    const alloc = (d.allocations||[]).find(a=>a.empId===e.id);
-    return `<label class="chk-wrap"><input type="checkbox" value="${e.id}" class="dis-emp-chk" ${alloc?'checked':''} onchange="onDisEmpCheck()">${e.name}(${e.id})</label>`;
-  }).join('');
-
-  openModal(`<div class="modal-title">编辑派单</div>
-    <div class="form-group"><label>派单名称</label><input id="mDisName" value="${d.name}"></div>
-    <div class="form-group"><label>总派单量</label><input type="number" id="mDisTotalPdl" inputmode="numeric" value="${d.total_pdl||0}" min="0" oninput="onDisEmpCheck()"></div>
-    <div class="form-group"><label>分配员工</label>
-      <div style="margin-top:4px"><label style="cursor:pointer"><input type="checkbox" onchange="toggleAllEmps(this)"> 全选</label></div>
-      <div id="mDisEmps" style="margin-top:4px">${empCheckboxes}</div>
-    </div>
-    <div class="form-group">
-      <label>分配方式</label>
-      <div style="display:flex;gap:8px;margin-top:4px">
-        <label style="cursor:pointer"><input type="radio" name="allocMode" value="avg" checked onchange="onAllocModeChange()"> 平均分配</label>
-        <label style="cursor:pointer"><input type="radio" name="allocMode" value="manual" onchange="onAllocModeChange()"> 手动分配</label>
-      </div>
-    </div>
-    <div id="allocPreview"></div>
-    <div style="text-align:right;margin-top:16px">
-      <button class="btn btn-primary" onclick="updateDispatch(${i})">保存</button>
-      <button class="btn btn-outline" onclick="closeModal()" style="margin-left:8px">取消</button>
-    </div>`);
-
-  // 延迟设置手动分配初始值
-  setTimeout(() => {
-    if(d.allocations && d.allocations.length) {
-      // 先触发一次渲染
-      onAllocModeChange();
-      // 如果有已存分配，切到手动模式并填值
-      setTimeout(() => {
-        const manualRadio = document.querySelector('input[name="allocMode"][value="manual"]');
-        if(manualRadio) { manualRadio.checked = true; onAllocModeChange(); }
-        setTimeout(() => {
-          d.allocations.forEach(a => {
-            const inp = document.querySelector(`.alloc-input[data-emp-id="${a.empId}"]`);
-            if(inp) inp.value = a.pdl || 0;
-          });
-          updateAllocSum();
-        }, 50);
-      }, 50);
-    }
-  }, 100);
-}
-
-function updateDispatch(i) {
-  const name = document.getElementById('mDisName').value.trim();
-  const totalPdl = Number(document.getElementById('mDisTotalPdl').value) || 0;
-  const checked = [...document.querySelectorAll('.dis-emp-chk:checked')];
-  if(!name) return toast('请输入派单名称','error');
-  if(!checked.length) return toast('请选择分配员工','error');
-
-  const mode = document.querySelector('input[name="allocMode"]:checked')?.value || 'avg';
-  const allocations = [];
-
-  if(mode === 'avg') {
-    const each = Math.floor(totalPdl / checked.length);
-    const remainder = totalPdl - each * checked.length;
-    checked.forEach((c, i) => {
-      allocations.push({ empId: c.value, pdl: each + (i < remainder ? 1 : 0) });
-    });
-  } else {
-    let sum = 0;
-    document.querySelectorAll('.alloc-input').forEach(inp => {
-      const val = Number(inp.value) || 0;
-      sum += val;
-      allocations.push({ empId: inp.dataset.empId, pdl: val });
-    });
-    if(sum !== totalPdl) {
-      if(!confirm(`已分配合计${sum}，与总派单量${totalPdl}不一致，仍要保存吗？`)) return;
-    }
-  }
-
-  state.dispatches[i].name = name;
-  state.dispatches[i].total_pdl = totalPdl;
-  state.dispatches[i].allocations = allocations;
-  saveConfig('dispatches', state.dispatches).then(()=>{closeModal();renderDispatches();toast('已更新','success');});
-}
-
-function delDispatch(i) {
-  if(!confirm('确定删除该派单？')) return;
-  state.dispatches.splice(i,1);
-  saveConfig('dispatches', state.dispatches).then(()=>{renderDispatches();toast('已删除','success');});
-}
-
-// ====== 重点业务 ======
-function renderProducts() {
-  const p = document.getElementById('panel_products');
-  let html = `<div class="card">
-    <div class="card-title">⭐ 重点业务配置</div>
-    <p style="color:var(--text2);font-size:13px;margin-bottom:16px">管理成交产品列表</p>
-    <div style="overflow-x:auto">
-    <table class="data-table"><thead><tr><th>序号</th><th>产品名称</th><th>代码</th><th>操作</th></tr></thead><tbody>`;
-  state.products.forEach((pr,i) => {
-    html += `<tr><td>${i+1}</td><td>${pr.name}</td><td><code>${pr.key}</code></td>
-      <td><button class="btn btn-sm btn-danger" onclick="delProduct(${i})">删除</button></td></tr>`;
-  });
-  html += '</tbody></table></div>';
-  html += `<div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
-    <input id="newProdName" placeholder="产品名称" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px">
-    <input id="newProdKey" placeholder="产品代码" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px">
-    <button class="btn btn-primary" onclick="addProduct()">添加产品</button></div></div>`;
-  p.innerHTML = html;
-}
-function addProduct() {
-  const name = document.getElementById('newProdName').value.trim();
-  const key = document.getElementById('newProdKey').value.trim();
-  if(!name||!key) return toast('请填写名称和代码','error');
-  state.products.push({key, name});
-  saveConfig('products', state.products).then(()=>{renderProducts();toast('添加成功','success');});
-}
-function delProduct(i) {
-  state.products.splice(i,1);
-  saveConfig('products', state.products).then(()=>{renderProducts();toast('已删除','success');});
-}
-
-// ====== 人员分组 ======
-function renderGroups() {
-  const p = document.getElementById('panel_groups');
-  let html = `<div class="card">
-    <div class="card-title">🏷️ 人员分组管理 <span class="badge">${state.groups.length}组</span></div>
-    <div style="margin-bottom:12px;display:flex;gap:8px">
-      <input id="newGroupName" placeholder="分组名称" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px">
-      <button class="btn btn-primary" onclick="addGroup()">添加分组</button>
-    </div>`;
-  state.groups.forEach((g,i) => {
-    const members = state.employees.filter(e=>e.group===g.name);
-    html += `<div style="padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
-      <div style="display:flex;justify-content:space-between;align-items:center">
-        <strong>${g.name}</strong>
-        <div><span class="tag tag-emp">${members.length}人</span>
-        <button class="btn btn-sm btn-danger" onclick="delGroup(${i})" style="margin-left:4px">删除</button></div>
-      </div>
-      <div style="margin-top:6px;font-size:13px;color:var(--text2)">${members.map(e=>e.name).join('、')||'暂无成员'}</div>
-    </div>`;
-  });
-  if(!state.groups.length) html += '<div class="empty">暂无分组</div>';
-  html += '</div>';
-  p.innerHTML = html;
-}
-function addGroup() {
-  const name = document.getElementById('newGroupName').value.trim();
-  if(!name) return toast('请输入分组名称','error');
-  if(state.groups.find(g=>g.name===name)) return toast('分组已存在','error');
-  state.groups.push({name});
-  saveConfig('groups', state.groups).then(()=>{renderGroups();toast('添加成功','success');});
-}
-function delGroup(i) {
-  const gName = state.groups[i].name;
-  state.employees.forEach(e=>{ if(e.group===gName) e.group=''; });
-  state.groups.splice(i,1);
-  Promise.all([saveConfig('groups',state.groups), saveConfig('employees',state.employees)])
-    .then(()=>{renderGroups();toast('已删除','success');});
-}
-
-// ====== ★ 总看板 ======
-function renderDashboard() {
-  const p = document.getElementById('panel_dashboard');
-  const subs = state.submissions;
-  const year = state.dashYear;
-  const month = state.dashMonth;
-  const ym = `${year}-${String(month).padStart(2,'0')}`;
-
-  const filtered = subs.filter(s => {
-    const sMonth = s.month || '';
-    const sDate = s.date || '';
-    return sMonth === ym || sMonth.startsWith(ym) || sDate.startsWith(ym);
-  });
-
-  let total = {pdl:0, cll:0, htl:0, cjl:0, tzjf:0, tsjz:0, count:0};
-  filtered.forEach(s => {
-    total.pdl += Number(s.pdl)||0;
-    total.cll += Number(s.cll)||0;
-    total.htl += Number(s.htl)||0;
-    total.cjl += Number(s.cjl)||0;
-    total.tzjf += Number(s.tzjf)||0;
-    total.tsjz += Number(s.tsjz)||0;
-    total.count++;
-  });
-  const htlRate = total.cll > 0 ? (total.htl/total.cll*100).toFixed(1) : '0.0';
-  const cjRate = total.pdl > 0 ? (total.cjl/total.pdl*100).toFixed(1) : '0.0';
-
-  const now = new Date();
-  let ymHtml = `<div class="ym-selector">
-    <select id="dashYear" onchange="state.dashYear=+this.value;renderDashboard()">`;
-  for(let y = now.getFullYear()-2; y <= now.getFullYear()+1; y++) {
-    ymHtml += `<option value="${y}" ${y===year?'selected':''}>${y}年</option>`;
-  }
-  ymHtml += `</select><select id="dashMonth" onchange="state.dashMonth=+this.value;renderDashboard()">`;
-  for(let m = 1; m <= 12; m++) {
-    ymHtml += `<option value="${m}" ${m===month?'selected':''}>${m}月</option>`;
-  }
-  ymHtml += `</select><span style="font-size:13px;color:var(--text2)">共 ${filtered.length} 条填报</span></div>`;
-
-  let cardsHtml = `<div class="stats-grid">
-    <div class="stat-card c1"><div class="label">总派单量</div><div class="value">${total.pdl}</div></div>
-    <div class="stat-card c2"><div class="label">总处理量</div><div class="value">${total.cll}</div></div>
-    <div class="stat-card c3"><div class="label">总呼通量</div><div class="value">${total.htl}</div></div>
-    <div class="stat-card c4"><div class="label">总成交量</div><div class="value">${total.cjl}</div></div>
-    <div class="stat-card c5"><div class="label">平均呼通率</div><div class="value">${htlRate}%</div></div>
-    <div class="stat-card c6"><div class="label">派单成交转化率</div><div class="value">${cjRate}%</div></div>
-  </div>`;
-
-  let trendData = [];
-  for(let i = 5; i >= 0; i--) {
-    let d = new Date(year, month - 1 - i, 1);
-    let ty = d.getFullYear(), tm = d.getMonth() + 1;
-    let tym = `${ty}-${String(tm).padStart(2,'0')}`;
-    let f = subs.filter(s => {
-      const sm = s.month || '';
-      const sd = s.date || '';
-      return sm === tym || sm.startsWith(tym) || sd.startsWith(tym);
-    });
-    let t = {pdl:0, cll:0, htl:0, cjl:0, label: `${ty}/${tm}`};
-    f.forEach(s => {
-      t.pdl += Number(s.pdl)||0; t.cll += Number(s.cll)||0;
-      t.htl += Number(s.htl)||0; t.cjl += Number(s.cjl)||0;
-    });
-    trendData.push(t);
-  }
-
-  let chartHtml = `<div class="chart-box"><div style="font-weight:600;margin-bottom:8px">📈 近6月趋势</div>
-    <canvas id="trendCanvas" height="260"></canvas></div>`;
-
-  let detailHtml = `<div class="card" style="margin-top:16px"><div class="card-title">📋 派单明细</div>
-    <div style="overflow-x:auto"><table class="data-table"><thead><tr>
-    <th>派单</th><th>员工</th><th>派单量</th><th>处理量</th><th>呼通量</th><th>呼通率</th><th>成交量</th><th>转化率</th></tr></thead><tbody>`;
-  if(filtered.length === 0) {
-    detailHtml += '<tr><td colspan="8" class="empty">该月暂无填报数据</td></tr>';
-  } else {
-    filtered.forEach(s => {
-      const hr = Number(s.cll)>0 ? (Number(s.htl)/Number(s.cll)*100).toFixed(1)+'%' : '0%';
-      const cr = Number(s.htl)>0 ? (Number(s.cjl)/Number(s.htl)*100).toFixed(1)+'%' : '0%';
-      detailHtml += `<tr><td>${s.dispatch_name||'-'}</td><td>${s.emp_name||'-'}</td>
-        <td>${s.pdl||0}</td><td>${s.cll||0}</td><td>${s.htl||0}</td><td>${hr}</td><td>${s.cjl||0}</td><td>${cr}</td></tr>`;
-    });
-  }
-  detailHtml += '</tbody></table></div></div>';
-
-  p.innerHTML = ymHtml + cardsHtml + chartHtml + detailHtml;
-  setTimeout(() => drawTrendChart(trendData), 50);
-}
-
-function drawTrendChart(data) {
-  const canvas = document.getElementById('trendCanvas');
-  if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.parentElement.clientWidth - 32;
-  canvas.width = W * 2; canvas.height = 520;
-  canvas.style.width = W + 'px'; canvas.style.height = '260px';
-  ctx.scale(2,2);
-  const padL=50, padR=20, padT=20, padB=40;
-  const cw = W - padL - padR, ch = 260 - padT - padB;
-  const maxVal = Math.max(1, ...data.map(d=>Math.max(d.pdl,d.cll,d.htl,d.cjl)));
-  ctx.strokeStyle = '#e2e8f0'; ctx.lineWidth = 0.5;
-  for(let i=0;i<=4;i++) {
-    const y = padT + ch * i / 4;
-    ctx.beginPath(); ctx.moveTo(padL,y); ctx.lineTo(padL+cw,y); ctx.stroke();
-    ctx.fillStyle='#94a3b8'; ctx.font='10px sans-serif'; ctx.textAlign='right';
-    ctx.fillText(Math.round(maxVal*(4-i)/4), padL-8, y+4);
-  }
-  const gap = cw / (data.length - 1 || 1);
-  data.forEach((d,i) => {
-    const x = padL + gap * i;
-    ctx.fillStyle='#94a3b8'; ctx.font='11px sans-serif'; ctx.textAlign='center';
-    ctx.fillText(d.label, x, padT+ch+18);
-  });
-  const series = [
-    {key:'pdl',color:'#4f46e5'},{key:'cll',color:'#06b6d4'},
-    {key:'htl',color:'#10b981'},{key:'cjl',color:'#f59e0b'}
-  ];
-  series.forEach(sr => {
-    ctx.strokeStyle = sr.color; ctx.lineWidth = 2; ctx.beginPath();
-    data.forEach((d,i) => {
-      const x = padL + gap * i;
-      const y = padT + ch - (d[sr.key] / maxVal * ch);
-      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-    });
-    ctx.stroke();
-    data.forEach((d,i) => {
-      const x = padL + gap * i;
-      const y = padT + ch - (d[sr.key] / maxVal * ch);
-      ctx.fillStyle = sr.color; ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
-    });
-  });
-  let lx = padL;
-  [{l:'派单量',c:'#4f46e5'},{l:'处理量',c:'#06b6d4'},{l:'呼通量',c:'#10b981'},{l:'成交量',c:'#f59e0b'}].forEach(s => {
-    ctx.fillStyle = s.c; ctx.fillRect(lx, padT+ch+30,12,3);
-    ctx.fillStyle='#64748b'; ctx.font='10px sans-serif'; ctx.textAlign='left';
-    ctx.fillText(s.l, lx+16, padT+ch+34);
-    lx += 70;
-  });
-}
-
-// ====== 人员分析 ======
-function renderAnalysis() {
-  const p = document.getElementById('panel_analysis');
-  const allMonths = [...new Set(state.submissions.map(s=>s.month).filter(Boolean))].sort().reverse();
-  let html = `<div class="card">
-    <div class="card-title">🔬 人员分析</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-      <select id="anaEmp" onchange="renderAnalysisDetail()"><option value="">选择员工</option>
-        ${state.employees.map(e=>'<option value="'+e.id+'">'+e.name+'('+e.id+')</option>').join('')}
-      </select>
-      <select id="anaMonth" onchange="renderAnalysisDetail()"><option value="">全部月份</option>
-        ${allMonths.map(m=>'<option value="'+m+'">'+m+'</option>').join('')}
-      </select></div><div id="anaResult"></div></div>`;
-  html += `<div class="card"><div class="card-title">📊 派单对比分析</div>
-    <div style="margin-bottom:12px"><div style="font-size:13px;color:var(--text2);margin-bottom:8px">选择派单（多选）：</div>
-    <div id="anaDisChk">${state.dispatches.map(d=>
-      `<label class="chk-wrap"><input type="checkbox" class="ana-dis-chk" value="${d.name}" onchange="renderDisCompare()">${d.name}</label>`
-    ).join('')}</div></div>
-    <div id="disCompareResult"></div></div>`;
-  html += `<div class="card"><div class="card-title">📈 分组分析</div><div id="groupAnalysisResult"></div></div>`;
-  p.innerHTML = html;
-  renderAnalysisDetail();
-  renderGroupAnalysis();
-}
-
-function renderAnalysisDetail() {
-  const empId = document.getElementById('anaEmp')?.value;
-  const month = document.getElementById('anaMonth')?.value;
-  const result = document.getElementById('anaResult');
-  if(!result) return;
-  if(!empId) { result.innerHTML = '<div class="empty">请选择员工查看分析</div>'; return; }
-  let subs = state.submissions.filter(s => s.emp_id === empId);
-  if(month) subs = subs.filter(s => s.month === month);
-  let t = {pdl:0,cll:0,htl:0,cjl:0,tzjf:0,tsjz:0};
-  subs.forEach(s => {
-    t.pdl+=Number(s.pdl)||0; t.cll+=Number(s.cll)||0;
-    t.htl+=Number(s.htl)||0; t.cjl+=Number(s.cjl)||0;
-    t.tzjf+=Number(s.tzjf)||0; t.tsjz+=Number(s.tsjz)||0;
-  });
-  const htlR = t.cll>0?(t.htl/t.cll*100).toFixed(1):'0.0';
-  const cjR = t.pdl>0?(t.cjl/t.pdl*100).toFixed(1):'0.0';
-  const hcjR = t.htl>0?(t.cjl/t.htl*100).toFixed(1):'0.0';
-  const score = (t.tzjf*0.3 + parseFloat(htlR)*2 + parseFloat(cjR)*1.5).toFixed(0);
-  const level = score>=50?'优秀':score>=30?'达标':'待提升';
-  let html = `<div class="stats-grid">
-    <div class="stat-card c1"><div class="label">派单量</div><div class="value">${t.pdl}</div></div>
-    <div class="stat-card c2"><div class="label">处理量</div><div class="value">${t.cll}</div></div>
-    <div class="stat-card c3"><div class="label">呼通量</div><div class="value">${t.htl}</div></div>
-    <div class="stat-card c4"><div class="label">成交量</div><div class="value">${t.cjl}</div></div>
-    <div class="stat-card c5"><div class="label">呼通率</div><div class="value">${htlR}%</div></div>
-    <div class="stat-card c6"><div class="label">成交转化率</div><div class="value">${cjR}%</div></div>
-    <div class="stat-card c1"><div class="label">提值积分</div><div class="value">${t.tzjf}</div></div>
-    <div class="stat-card c2"><div class="label">提升价值</div><div class="value">${t.tsjz}</div></div>
-  </div>
-  <div style="text-align:center;padding:12px;background:linear-gradient(135deg,var(--primary),var(--c6));color:#fff;border-radius:12px;margin-top:8px">
-    <div style="font-size:32px;font-weight:800">${score}分</div>
-    <div style="font-size:14px;opacity:.9">综合评分 · ${level}</div></div>
-  <div class="chart-box" style="margin-top:16px"><div style="font-weight:600;margin-bottom:8px">雷达图</div>
-    <canvas id="radarCanvas" height="280"></canvas></div>`;
-  result.innerHTML = html;
-  setTimeout(() => drawRadar([t.pdl,t.cll,t.htl,parseFloat(htlR),t.cjl,parseFloat(cjR),t.tzjf,t.tsjz]), 50);
-}
-
-function drawRadar(values) {
-  const canvas = document.getElementById('radarCanvas');
-  if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.parentElement.clientWidth - 32;
-  canvas.width = W*2; canvas.height = 560;
-  canvas.style.width = W+'px'; canvas.style.height = '280px';
-  ctx.scale(2,2);
-  const cx = W/2, cy = 140, R = Math.min(cx,cy)-30;
-  const labels = ['派单量','处理量','呼通量','呼通率','成交量','转化率','积分','提值'];
-  const maxV = Math.max(1, ...values);
-  const n = labels.length;
-  for(let ring=1;ring<=4;ring++) {
-    const r = R*ring/4;
-    ctx.strokeStyle='#e2e8f0'; ctx.lineWidth=0.5; ctx.beginPath();
-    for(let i=0;i<=n;i++) {
-      const a = Math.PI*2*i/n - Math.PI/2;
-      const x = cx+r*Math.cos(a), y = cy+r*Math.sin(a);
-      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-    }
-    ctx.stroke();
-  }
-  for(let i=0;i<n;i++) {
-    const a = Math.PI*2*i/n - Math.PI/2;
-    ctx.strokeStyle='#e2e8f0'; ctx.beginPath();
-    ctx.moveTo(cx,cy); ctx.lineTo(cx+R*Math.cos(a), cy+R*Math.sin(a)); ctx.stroke();
-    const lx = cx+(R+18)*Math.cos(a), ly = cy+(R+18)*Math.sin(a);
-    ctx.fillStyle='#64748b'; ctx.font='11px sans-serif'; ctx.textAlign='center';
-    ctx.fillText(labels[i], lx, ly+4);
-  }
-  ctx.fillStyle='rgba(79,70,229,0.15)'; ctx.strokeStyle='#4f46e5'; ctx.lineWidth=2;
-  ctx.beginPath();
-  for(let i=0;i<=n;i++) {
-    const idx = i%n;
-    const a = Math.PI*2*idx/n - Math.PI/2;
-    const v = (values[idx]||0)/maxV;
-    const x = cx+R*v*Math.cos(a), y = cy+R*v*Math.sin(a);
-    if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-  }
-  ctx.fill(); ctx.stroke();
-  for(let i=0;i<n;i++) {
-    const a = Math.PI*2*i/n - Math.PI/2;
-    const v = (values[i]||0)/maxV;
-    const x = cx+R*v*Math.cos(a), y = cy+R*v*Math.sin(a);
-    ctx.fillStyle='#4f46e5'; ctx.beginPath(); ctx.arc(x,y,3,0,Math.PI*2); ctx.fill();
-  }
-}
-
-function renderDisCompare() {
-  const sel = [...document.querySelectorAll('.ana-dis-chk:checked')].map(c=>c.value);
-  const result = document.getElementById('disCompareResult');
-  if(!result) return;
-  if(!sel.length) { result.innerHTML = '<div class="empty">请选择派单进行对比</div>'; return; }
-  let html = '';
-  sel.forEach(dName => {
-    const dSubs = state.submissions.filter(s => s.dispatch_name === dName);
-    let t = {pdl:0,cll:0,htl:0,cjl:0};
-    dSubs.forEach(s => { t.pdl+=Number(s.pdl)||0; t.cll+=Number(s.cll)||0; t.htl+=Number(s.htl)||0; t.cjl+=Number(s.cjl)||0; });
-    const hR = t.cll>0?(t.htl/t.cll*100).toFixed(1):'0.0';
-    const cR = t.pdl>0?(t.cjl/t.pdl*100).toFixed(1):'0.0';
-    html += `<div style="padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
-      <strong>${dName}</strong> <span class="tag tag-dis">${dSubs.length}条</span>
-      <div style="display:flex;gap:12px;margin-top:8px;font-size:13px;flex-wrap:wrap">
-        <span>派单量:${t.pdl}</span><span>处理量:${t.cll}</span><span>呼通量:${t.htl}</span>
-        <span>成交量:${t.cjl}</span><span>呼通率:${hR}%</span><span>转化率:${cR}%</span></div></div>`;
-  });
-  result.innerHTML = html;
-}
-
-function renderGroupAnalysis() {
-  const result = document.getElementById('groupAnalysisResult');
-  if(!result) return;
-  if(!state.groups.length) { result.innerHTML = '<div class="empty">请先创建分组</div>'; return; }
-  let html = '';
-  state.groups.forEach(g => {
-    const members = state.employees.filter(e => e.group === g.name);
-    let t = {pdl:0,cll:0,htl:0,cjl:0,tzjf:0,tsjz:0};
-    members.forEach(emp => {
-      state.submissions.filter(s => s.emp_id === emp.id).forEach(s => {
-        t.pdl+=Number(s.pdl)||0; t.cll+=Number(s.cll)||0;
-        t.htl+=Number(s.htl)||0; t.cjl+=Number(s.cjl)||0;
-        t.tzjf+=Number(s.tzjf)||0; t.tsjz+=Number(s.tsjz)||0;
-      });
-    });
-    const hR = t.cll>0?(t.htl/t.cll*100).toFixed(1):'0.0';
-    const cR = t.pdl>0?(t.cjl/t.pdl*100).toFixed(1):'0.0';
-    html += `<div style="padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
-      <strong>${g.name}</strong> <span class="tag tag-emp">${members.length}人</span>
-      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-top:8px;font-size:13px">
-        <div>派单量: <b>${t.pdl}</b></div><div>处理量: <b>${t.cll}</b></div>
-        <div>呼通量: <b>${t.htl}</b></div><div>成交量: <b>${t.cjl}</b></div>
-        <div>呼通率: <b>${hR}%</b></div><div>转化率: <b>${cR}%</b></div>
-        <div>积分: <b>${t.tzjf}</b></div><div>提值: <b>${t.tsjz}</b></div></div></div>`;
-  });
-  html += `<div class="chart-box" style="margin-top:12px"><div style="font-weight:600;margin-bottom:8px">分组对比</div>
-    <canvas id="groupBarCanvas" height="200"></canvas></div>`;
-  result.innerHTML = html;
-  setTimeout(() => drawGroupBar(), 50);
-}
-
-function drawGroupBar() {
-  const canvas = document.getElementById('groupBarCanvas');
-  if(!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.parentElement.clientWidth - 32;
-  canvas.width = W*2; canvas.height = 400;
-  canvas.style.width = W+'px'; canvas.style.height = '200px';
-  ctx.scale(2,2);
-  const groups = state.groups;
-  if(!groups.length) return;
-  const data = groups.map(g => {
-    const members = state.employees.filter(e => e.group === g.name);
-    let t = {pdl:0,cll:0,htl:0,cjl:0};
-    members.forEach(emp => {
-      state.submissions.filter(s => s.emp_id === emp.id).forEach(s => {
-        t.pdl+=Number(s.pdl)||0; t.cll+=Number(s.cll)||0;
-        t.htl+=Number(s.htl)||0; t.cjl+=Number(s.cjl)||0;
-      });
-    });
-    return {name: g.name, ...t};
-  });
-  const padL=40, padR=20, padT=20, padB=40;
-  const cw = W-padL-padR, ch = 200-padT-padB;
-  const maxVal = Math.max(1, ...data.map(d=>Math.max(d.pdl,d.cll,d.htl,d.cjl)));
-  const barW = Math.min(30, cw/groups.length/5);
-  const colors = ['#4f46e5','#06b6d4','#10b981','#f59e0b'];
-  const keys = ['pdl','cll','htl','cjl'];
-  const groupW = cw / groups.length;
-  data.forEach((d,gi) => {
-    const gx = padL + groupW * gi + groupW/2;
-    keys.forEach((k,ki) => {
-      const h = d[k]/maxVal*ch;
-      const x = gx - barW*2 + ki*barW;
-      ctx.fillStyle = colors[ki];
-      ctx.fillRect(x, padT+ch-h, barW-1, h);
-    });
-    ctx.fillStyle='#64748b'; ctx.font='11px sans-serif'; ctx.textAlign='center';
-    ctx.fillText(d.name, gx, padT+ch+18);
-  });
-  let lx = padL;
-  ['派单量','处理量','呼通量','成交量'].forEach((l,i) => {
-    ctx.fillStyle = colors[i]; ctx.fillRect(lx, padT+ch+28, 12, 3);
-    ctx.fillStyle='#64748b'; ctx.font='10px sans-serif'; ctx.textAlign='left';
-    ctx.fillText(l, lx+16, padT+ch+32);
-    lx += 65;
-  });
-}
-
-// ====== 业绩排行 ======
-function renderRanks() {
-  const p = document.getElementById('panel_ranks');
-  let scores = state.employees.map(emp => {
-    const subs = state.submissions.filter(s => s.emp_id === emp.id);
-    let t = {pdl:0,cll:0,htl:0,cjl:0,tzjf:0};
-    subs.forEach(s => {
-      t.pdl+=Number(s.pdl)||0; t.cll+=Number(s.cll)||0;
-      t.htl+=Number(s.htl)||0; t.cjl+=Number(s.cjl)||0;
-      t.tzjf+=Number(s.tzjf)||0;
-    });
-    const htlR = t.cll>0?t.htl/t.cll*100:0;
-    const cjR = t.pdl>0?t.cjl/t.pdl*100:0;
-    const score = t.tzjf*0.3 + htlR*2 + cjR*1.5;
-    const level = score>=50?'优秀':score>=30?'达标':'待提升';
-    return {emp, score: score.toFixed(0), htlR: htlR.toFixed(1), cjR: cjR.toFixed(1), level};
-  }).sort((a,b) => b.score - a.score);
-  const maxScore = Math.max(1, ...scores.map(s=>s.score));
-  let html = `<div class="card"><div class="card-title">🏆 业绩排行 <span class="badge">${state.employees.length}人</span></div>`;
-  scores.forEach((s,i) => {
-    const rankClass = i===0?'rank-1':i===1?'rank-2':i===2?'rank-3':'rank-other';
-    html += `<div class="rank-row">
-      <div class="rank-num ${rankClass}">${i+1}</div>
-      <div class="rank-info">
-        <div class="rank-name">${s.emp.name} <span class="tag tag-dis">${s.emp.id}</span></div>
-        <div class="rank-score">综合${s.score}分 · ${s.level} | 呼通率${s.htlR}% | 转化率${s.cjR}%</div>
-        <div class="rank-bar"><div class="rank-bar-fill" style="width:${s.score/maxScore*100}%"></div></div>
-      </div></div>`;
-  });
-  if(!scores.length) html += '<div class="empty">暂无排行数据</div>';
-  html += '</div>';
-  p.innerHTML = html;
-}
-
-// ====== 填报入口 ======
-function renderQrEntry() {
-  const p = document.getElementById('panel_qrentry');
-  const baseUrl = location.origin + location.pathname;
-  let html = `<div class="card">
-    <div class="card-title">🔗 填报入口管理</div>
-    <p style="color:var(--text2);font-size:13px;margin-bottom:16px">为每个员工生成专属二维码和链接</p>`;
-  state.employees.forEach(emp => {
-    const link = `${baseUrl}#emp=${emp.id}`;
-    html += `<div style="padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px;display:flex;align-items:center;gap:16px;flex-wrap:wrap">
-      <div id="qr_${emp.id}" style="flex-shrink:0"></div>
-      <div style="flex:1;min-width:200px">
-        <div style="font-weight:600">${emp.name} <span class="tag tag-emp">${emp.id}</span></div>
-        <div class="qr-link" style="margin-top:4px;word-break:break-all">${link}</div>
-        <div style="margin-top:4px;font-size:12px;color:var(--text2)">也可输入工号 ${emp.id} 或姓名 "${emp.name}" 进入</div>
-      </div></div>`;
-  });
-  if(!state.employees.length) html += '<div class="empty">请先添加员工</div>';
-  html += '</div>';
-  p.innerHTML = html;
-  state.employees.forEach(emp => {
-    const container = document.getElementById('qr_' + emp.id);
-    if(container && !container.hasChildNodes()) {
-      try {
-        new QRCode(container, {
-          text: `${baseUrl}#emp=${emp.id}`, width: 80, height: 80,
-          colorDark: '#1e293b', colorLight: '#ffffff'
-        });
-      } catch(e) { container.textContent = 'QR'; }
-    }
-  });
-}
-
-// ====== 数据导出 ======
-function renderExport() {
-  const p = document.getElementById('panel_export');
-  const allMonths = [...new Set(state.submissions.map(s=>s.month).filter(Boolean))].sort().reverse();
-  let html = `<div class="card">
-    <div class="card-title">📥 数据导出</div>
-    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
-      <select id="expDis"><option value="">全部派单</option>
-        ${state.dispatches.map(d=>'<option value="'+d.name+'">'+d.name+'</option>').join('')}</select>
-      <select id="expMonth"><option value="">全部月份</option>
-        ${allMonths.map(m=>'<option value="'+m+'">'+m+'</option>').join('')}</select>
-      <button class="btn btn-primary" onclick="doExport()">导出CSV</button>
-    </div></div>`;
-  p.innerHTML = html;
-}
-
-function doExport() {
-  const disName = document.getElementById('expDis').value;
-  const month = document.getElementById('expMonth').value;
-  let subs = state.submissions;
-  if(disName) subs = subs.filter(s => s.dispatch_name === disName);
-  if(month) subs = subs.filter(s => s.month === month);
-  const headers = ['派单名称','员工','派单量','处理量','呼通量','呼通率','成交量','派单转化率','呼通转化率'];
-  PRODUCTS.forEach(p => { headers.push(p.name+'数量'); headers.push(p.name+'积分'); });
-  headers.push('提值积分','提升价值');
-  const rows = subs.map(s => {
-    const products = s.products ? (typeof s.products === 'string' ? JSON.parse(s.products) : s.products) : {};
-    const hR = Number(s.cll)>0?(Number(s.htl)/Number(s.cll)*100).toFixed(1)+'%':'0%';
-    const pdlR = Number(s.pdl)>0?(Number(s.cjl)/Number(s.pdl)*100).toFixed(1)+'%':'0%';
-    const htlR = Number(s.htl)>0?(Number(s.cjl)/Number(s.htl)*100).toFixed(1)+'%':'0%';
-    const row = [s.dispatch_name||'', s.emp_name||'', s.pdl||0, s.cll||0, s.htl||0, hR, s.cjl||0, pdlR, htlR];
-    PRODUCTS.forEach(p => {
-      const pr = products[p.key]||{};
-      row.push(pr.n||0); row.push(pr.s||0);
-    });
-    row.push(s.tzjf||0, s.tsjz||0);
-    return row;
-  });
-  let csv = '\uFEFF' + headers.join(',') + '\n';
-  rows.forEach(r => { csv += r.map(v=>'"'+v+'"').join(',') + '\n'; });
-  const blob = new Blob([csv], {type:'text/csv;charset=utf-8'});
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `派单数据_${disName||'全部'}_${month||'全部'}.csv`;
-  a.click();
-  toast('导出成功','success');
-}
-
-// ====== ★ 员工端（v13.2升级：大小写不敏感+姓名进入）======
-async function initEmp() {
-  await loadConfig();
-  await loadSubmissions();
-  const hash = location.hash;
-  if(hash.startsWith('#emp=')) {
-    const empId = hash.substring(5);
-    // 不区分大小写查找
-    const emp = state.employees.find(e => e.id.toLowerCase() === empId.toLowerCase());
-    if(emp) {
-      state.empId = emp.id;
-      state.empName = emp.name;
-    }
-  }
-  if(state.empId) {
-    const emp = state.employees.find(e => e.id === state.empId);
-    if(emp) {
-      document.getElementById('empTitle').textContent = emp.name + ' 的填报';
-      document.getElementById('empSubtitle').textContent = '工号: ' + emp.id;
-    }
-  }
-  switchEmpTab(0);
-}
-
-function switchEmpTab(idx) {
-  document.querySelectorAll('.emp-tab').forEach((t,i) => t.classList.toggle('active', i===idx));
-  const body = document.getElementById('empBody');
-  if(idx === 0) renderEmpForm(body);
-  else renderEmpHistory(body);
-}
-
-function renderEmpForm(container) {
-  const empId = state.empId;
-  let html = `<div class="card"><div class="card-title">📝 填写日报</div>`;
-
-  if(!empId) {
-    html += `<div class="form-group"><label>工号 或 姓名</label>
-      <input id="empInputId" inputmode="text" placeholder="输入工号（如e01/E01）或姓名" style="font-size:16px"></div>
-      <button class="btn btn-primary" style="width:100%" onclick="lookupEmp()">确认进入</button></div>`;
-    container.innerHTML = html;
-    return;
-  }
-
-  html += `<div class="form-group"><label>派单</label>
-    <select id="empDis" style="font-size:16px">${state.dispatches.map(d=>'<option value="'+d.name+'">'+d.name+'</option>').join('')}</select></div>
-    <div class="form-group"><label>日期</label>
-    <input type="date" id="empDate" value="${new Date().toISOString().slice(0,10)}" style="font-size:16px"></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-      <div class="form-group"><label>派单量</label><input type="number" id="empPdl" inputmode="numeric" value="0" style="font-size:16px"></div>
-      <div class="form-group"><label>处理量</label><input type="number" id="empCll" inputmode="numeric" value="0" style="font-size:16px"></div>
-      <div class="form-group"><label>呼通量</label><input type="number" id="empHtl" inputmode="numeric" value="0" style="font-size:16px"></div>
-      <div class="form-group"><label>成交量</label><input type="number" id="empCjl" inputmode="numeric" value="0" style="font-size:16px"></div>
-    </div>
-    <div style="margin:12px 0;font-weight:600">成交产品</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">`;
-  PRODUCTS.forEach(p => {
-    html += `<div style="padding:8px;border:1px solid var(--border);border-radius:8px">
-      <div style="font-size:13px;font-weight:500;margin-bottom:4px">${p.name}</div>
-      <input type="number" id="empP_${p.key}_n" inputmode="numeric" value="0" placeholder="数量" style="font-size:16px;width:48%;display:inline">
-      <input type="number" id="empP_${p.key}_s" inputmode="numeric" value="0" placeholder="积分" style="font-size:16px;width:48%;display:inline;float:right">
-    </div>`;
-  });
-  html += `</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px">
-      <div class="form-group"><label>提值积分</label><input type="number" id="empTzjf" inputmode="numeric" value="0" style="font-size:16px"></div>
-      <div class="form-group"><label>提升价值</label><input type="number" id="empTsjz" inputmode="numeric" value="0" style="font-size:16px"></div>
-    </div></div>
-  <div style="position:fixed;bottom:0;left:0;right:0;padding:12px;background:#fff;border-top:1px solid var(--border)">
-    <button class="btn btn-primary" style="width:100%;padding:14px;font-size:16px" onclick="submitReport()">提交填报</button>
-  </div>
-  <div style="height:60px"></div>`;
-  container.innerHTML = html;
-}
-
-function lookupEmp() {
-  const input = document.getElementById('empInputId').value.trim();
-  if(!input) return toast('请输入工号或姓名','error');
-
-  // 先按工号匹配（不区分大小写）
-  let emp = state.employees.find(e => e.id.toLowerCase() === input.toLowerCase());
-
-  // 再按姓名匹配
-  if(!emp) {
-    emp = state.employees.find(e => e.name === input);
-  }
-
-  // 模糊姓名匹配
-  if(!emp) {
-    emp = state.employees.find(e => e.name.includes(input));
-  }
-
-  if(!emp) return toast('未找到该员工，请检查工号或姓名','error');
-
-  state.empId = emp.id;
-  state.empName = emp.name;
-  document.getElementById('empTitle').textContent = emp.name + ' 的填报';
-  document.getElementById('empSubtitle').textContent = '工号: ' + emp.id;
-  toast(`欢迎，${emp.name}！`, 'success');
-  switchEmpTab(0);
-}
-
-async function submitReport() {
-  const dis = document.getElementById('empDis')?.value;
-  const date = document.getElementById('empDate')?.value;
-  if(!dis) return toast('请选择派单','error');
-  const pdl = Number(document.getElementById('empPdl')?.value)||0;
-  const cll = Number(document.getElementById('empCll')?.value)||0;
-  const htl = Number(document.getElementById('empHtl')?.value)||0;
-  const cjl = Number(document.getElementById('empCjl')?.value)||0;
-  const tzjf = Number(document.getElementById('empTzjf')?.value)||0;
-  const tsjz = Number(document.getElementById('empTsjz')?.value)||0;
-  const products = {};
-  PRODUCTS.forEach(p => {
-    const n = Number(document.getElementById('empP_'+p.key+'_n')?.value)||0;
-    const s = Number(document.getElementById('empP_'+p.key+'_s')?.value)||0;
-    products[p.key] = {n, s};
-  });
-  const month = date ? date.substring(0,7) : new Date().toISOString().substring(0,7);
-  const record = {
-    emp_id: state.empId,
-    emp_name: state.empName,
-    dispatch_name: dis,
-    date: date || new Date().toISOString().slice(0,10),
-    month: month,
-    pdl, cll, htl, cjl,
-    products: JSON.stringify(products),
-    tzjf, tsjz
-  };
-  try {
-    await apiPost('dispatch_submissions', record);
-    toast('提交成功','success');
-    PRODUCTS.forEach(p => {
-      const nEl = document.getElementById('empP_'+p.key+'_n');
-      const sEl = document.getElementById('empP_'+p.key+'_s');
-      if(nEl) nEl.value = 0; if(sEl) sEl.value = 0;
-    });
-    ['empPdl','empCll','empHtl','empCjl','empTzjf','empTsjz'].forEach(id => {
-      const el = document.getElementById(id);
-      if(el) el.value = 0;
-    });
-    await loadSubmissions();
-  } catch(e) { toast('提交失败: '+e.message, 'error'); }
-}
-
-function renderEmpHistory(container) {
-  const subs = state.submissions.filter(s => s.emp_id === state.empId);
-  let html = `<div class="card"><div class="card-title">📜 填报历史 <span class="badge">${subs.length}条</span></div>`;
-  if(!subs.length) {
-    html += '<div class="empty">暂无填报记录</div>';
-  } else {
-    subs.forEach(s => {
-      html += `<div style="padding:12px;border:1px solid var(--border);border-radius:8px;margin-bottom:8px">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><strong>${s.dispatch_name||'-'}</strong> <span class="tag tag-dis">${s.date||'-'}</span></div>
-          <div>
-            <button class="btn btn-sm btn-outline" onclick="editSubmission('${s.id}')">编辑</button>
-            <button class="btn btn-sm btn-danger" onclick="delSubmission('${s.id}')">删除</button>
-          </div></div>
-        <div style="margin-top:8px;font-size:13px;color:var(--text2);display:flex;gap:12px;flex-wrap:wrap">
-          <span>派单:${s.pdl||0}</span><span>处理:${s.cll||0}</span>
-          <span>呼通:${s.htl||0}</span><span>成交:${s.cjl||0}</span>
-          <span>积分:${s.tzjf||0}</span><span>提值:${s.tsjz||0}</span></div></div>`;
-    });
-  }
-  html += '</div>';
-  container.innerHTML = html;
-}
-
-function editSubmission(id) {
-  const s = state.submissions.find(x => x.id === id);
-  if(!s) return;
-  openModal(`<div class="modal-title">编辑填报</div>
-    <div class="form-group"><label>派单量</label><input type="number" id="editPdl" value="${s.pdl||0}"></div>
-    <div class="form-group"><label>处理量</label><input type="number" id="editCll" value="${s.cll||0}"></div>
-    <div class="form-group"><label>呼通量</label><input type="number" id="editHtl" value="${s.htl||0}"></div>
-    <div class="form-group"><label>成交量</label><input type="number" id="editCjl" value="${s.cjl||0}"></div>
-    <div class="form-group"><label>提值积分</label><input type="number" id="editTzjf" value="${s.tzjf||0}"></div>
-    <div class="form-group"><label>提升价值</label><input type="number" id="editTsjz" value="${s.tsjz||0}"></div>
-    <div style="text-align:right;margin-top:16px">
-      <button class="btn btn-primary" onclick="saveEditSubmission('${id}')">保存</button>
-      <button class="btn btn-outline" onclick="closeModal()" style="margin-left:8px">取消</button>
-    </div>`);
-}
-async function saveEditSubmission(id) {
-  const data = {
-    pdl: Number(document.getElementById('editPdl').value)||0,
-    cll: Number(document.getElementById('editCll').value)||0,
-    htl: Number(document.getElementById('editHtl').value)||0,
-    cjl: Number(document.getElementById('editCjl').value)||0,
-    tzjf: Number(document.getElementById('editTzjf').value)||0,
-    tsjz: Number(document.getElementById('editTsjz').value)||0
-  };
-  try {
-    await apiPatch('dispatch_submissions', id, data);
-    closeModal(); toast('已更新','success');
-    await loadSubmissions();
-    switchEmpTab(1);
-  } catch(e) { toast('更新失败','error'); }
-}
-async function delSubmission(id) {
-  if(!confirm('确定删除该记录？')) return;
-  try {
-    await apiDelete('dispatch_submissions', id);
-    toast('已删除','success');
-    await loadSubmissions();
-    switchEmpTab(1);
-  } catch(e) { toast('删除失败','error'); }
-}
-
-// ====== 初始化 ======
-(function init() {
-  const hash = location.hash;
-  if(hash.startsWith('#emp=')) {
-    initEmp();
-  }
-})();
+var SU='https://vagtmsyzoehkakdejgkw.supabase.co';
+var SK='sb_publishable_O0aq7OG9x4DkuizZ-E4J6w_uuNu30gf';
+var HD={'apikey':SK,'Authorization':'Bearer '+SK,'Content-Type':'application/json','Prefer':'return=representation'};
+var PR=[{k:'P_FTTR',n:'FTTR'},{k:'P_ACAP',n:'ACAP'},{k:'P_ZP',n:'中屏'},{k:'P_BZQG',n:'标准迁改'},{k:'P_ZDYQG',n:'自定义迁改'},{k:'P_JZ10U',n:'加装10元以上'},{k:'P_JZ10',n:'加装10元'},{k:'P_TD',n:'托底'}];
+var S={emps:[],dis:[],prods:PR.map(function(p){return{k:p.k,n:p.n}}),grps:[],subs:[],tab:'employees',dy:new Date().getFullYear(),dm:new Date().getMonth()+1,eid:'',enm:'',ok:false,err:''};
+var TB=[{id:'employees',l:'👥 员工管理'},{id:'dispatches',l:'📋 派单管理'},{id:'products',l:'⭐ 重点业务'},{id:'groups',l:'🏷️ 人员分组'},{id:'dashboard',l:'📊 总看板'},{id:'analysis',l:'🔬 人员分析'},{id:'ranks',l:'🏆 业绩排行'},{id:'qrentry',l:'🔗 填报入口'},{id:'export',l:'📥 数据导出'}];
+
+function toast(m,t){var e=document.getElementById('toast');e.textContent=m;e.className='toast show '+(t||'');setTimeout(function(){e.className='toast'},2500);}
+function openMo(h){document.getElementById('moCt').innerHTML=h;document.getElementById('moOv').classList.add('show');}
+function closeMo(){document.getElementById('moOv').classList.remove('show');}
+function norm(s){return s.trim().replace(/[\uff01-\uff5e]/g,function(c){return String.fromCharCode(c.charCodeAt(0)-0xfee0)}).replace(/\u3000/g,' ').trim();}
+function findE(input){var q=norm(input);if(!q)return null;var e=S.emps.find(function(x){return x.id.toLowerCase()===q.toLowerCase()});if(e)return e;e=S.emps.find(function(x){return x.name===norm(input)});if(e)return e;return S.emps.find(function(x){return x.name.indexOf(norm(input))!==-1})||null;}
+
+// API with detailed error
+async function apiG(t,q){var r=await fetch(SU+'/rest/v1/'+t+q,{headers:HD});if(!r.ok){var d='';try{var j=await r.json();d=j.message||j.msg||j.error||JSON.stringify(j);}catch(x){d=r.statusText;}throw new Error(r.status+' '+d);}return r.json();}
+async function apiP(t,d){var r=await fetch(SU+'/rest/v1/'+t,{method:'POST',headers:HD,body:JSON.stringify(d)});if(!r.ok&&r.status!==409){var d2='';try{var j2=await r.json();d2=j2.message||j2.msg||j2.error||JSON.stringify(j2);}catch(x){d2=r.statusText;}throw new Error(r.status+' '+d2);}return r.status===409?null:r.json();}
+async function apiU(t,id,d){var r=await fetch(SU+'/rest/v1/'+t+'?id=eq.'+id,{method:'PATCH',headers:{...HD,'Prefer':'return=representation'},body:JSON.stringify(d)});if(!r.ok){var d3='';try{var j3=await r.json();d3=j3.message||j3.error||JSON.stringify(j3);}catch(x){d3=r.statusText;}throw new Error(r.status+' '+d3);}return r.json();}
+async function apiD(t,id){var r=await fetch(SU+'/rest/v1/'+t+'?id=eq.'+id,{method:'DELETE',headers:HD});if(!r.ok)throw new Error(r.status);}
+
+async function loadCfg(){try{var rows=await apiG('dispatch_config','?select=id,key,data');S.emps=[];S.dis=[];S.prods=PR.map(function(p){return{k:p.k,n:p.n}});S.grps=[];rows.forEach(function(r){if(r.key==='employees')S.emps=r.data||[];if(r.key==='dispatches')S.dis=r.data||[];if(r.key==='products'&&r.data&&r.data.length)S.prods=r.data;if(r.key==='groups')S.grps=r.data||[];});S.ok=true;S.err='';}catch(e){S.ok=false;S.err=e.message;}}
+async function loadSubs(){try{S.subs=await apiG('dispatch_submissions','?select=*&order=created_at.desc');}catch(e){S.subs=[];}}
+async function saveCfg(key,data){try{var rows=await apiG('dispatch_config','?key=eq.'+key);if(rows.length)await apiU('dispatch_config',rows[0].id,{data:data});else await apiP('dispatch_config',{key:key,data:data});}catch(e){console.error('saveCfg err:',e);}}
+
+function showPg(n){document.getElementById('entryPage').style.display=n==='entry'?'flex':'none';document.getElementById('adminPage').style.display=n==='admin'?'block':'none';document.getElementById('empPage').style.display=n==='emp'?'block':'none';}
+function goAdmin(){showPg('admin');initAdm();}
+function goEmp(){showPg('emp');initEmp();}
+function goEntry(){showPg('entry');S.eid='';S.enm='';}
+
+async function initAdm(){await loadCfg();await loadSubs();renderNav();swTab(S.tab);setInterval(async function(){await loadSubs();if(S.tab==='dashboard')renderDash();if(S.tab==='ranks')renderRanks();},15000);}
+function renderNav(){document.getElementById('tabNav').innerHTML=TB.map(function(t){return '<div class="tab-btn '+(t.id===S.tab?'active':'')+'" onclick="swTab(\''+t.id+'\')">'+t.l+'</div>';}).join('');}
+function swTab(id){S.tab=id;document.querySelectorAll('.tab-btn').forEach(function(b,i){b.classList.toggle('active',TB[i].id===id);});document.getElementById('tabContent').innerHTML='<div id="p_'+id+'"></div>';var R={employees:rEmps,dispatches:rDis,products:rProds,groups:rGrps,dashboard:rDash,analysis:rAna,ranks:rRanks,qrentry:rQR,export:rExp};if(R[id])R[id]();}
+
+// ========== 员工管理 ==========
+function rEmps(){var p=document.getElementById('p_employees');var h='<div class="card"><div class="card-title">👥 员工管理 <span class="badge">'+S.emps.length+'人</span></div><div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap"><button class="btn btn-p" onclick="addEmp()">➕ 添加</button><button class="btn btn-o" onclick="batchImp()">📦 批量导入</button></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>工号</th><th>姓名</th><th>分组</th><th>操作</th></tr></thead><tbody>';S.emps.forEach(function(e,i){h+='<tr><td>'+e.id+'</td><td>'+e.name+'</td><td><span class="tag tag-d">'+(e.group||'未分组')+'</span></td><td><button class="btn btn-sm btn-o" onclick="editEmp('+i+')">编辑</button> <button class="btn btn-sm btn-d" onclick="delEmp('+i+')">删除</button></td></tr>';});if(!S.emps.length)h+='<tr><td colspan="4" class="empty">暂无</td></tr>';h+='</tbody></table></div></div>';p.innerHTML=h;}
+function addEmp(){openMo('<div class="mo-t">添加员工</div><div class="fg"><label>工号</label><input id="mId" placeholder="E01"></div><div class="fg"><label>姓名</label><input id="mNm" placeholder="姓名"></div><div class="fg"><label>分组</label><select id="mGr"><option value="">未分组</option>'+S.grps.map(function(g){return '<option value="'+g.name+'">'+g.name+'</option>';}).join('')+'</select></div><div style="text-align:right;margin-top:16px"><button class="btn btn-p" onclick="svEmp()">保存</button> <button class="btn btn-o" onclick="closeMo()">取消</button></div>');}
+function svEmp(){var id=document.getElementById('mId').value.trim(),nm=document.getElementById('mNm').value.trim(),gr=document.getElementById('mGr').value;if(!id||!nm)return toast('请填写工号和姓名','err');if(S.emps.find(function(e){return e.id.toLowerCase()===id.toLowerCase()}))return toast('工号已存在','err');S.emps.push({id:id,name:nm,group:gr||''});saveCfg('employees',S.emps).then(function(){closeMo();rEmps();toast('添加成功','ok');});}
+function editEmp(i){var e=S.emps[i];openMo('<div class="mo-t">编辑员工</div><div class="fg"><label>工号</label><input value="'+e.id+'" disabled></div><div class="fg"><label>姓名</label><input id="mNm" value="'+e.name+'"></div><div class="fg"><label>分组</label><select id="mGr"><option value="">未分组</option>'+S.grps.map(function(g){return '<option value="'+g.name+'" '+(g.name===e.group?'selected':'')+'>'+g.name+'</option>';}).join('')+'</select></div><div style="text-align:right;margin-top:16px"><button class="btn btn-p" onclick="upEmp('+i+')">保存</button> <button class="btn btn-o" onclick="closeMo()">取消</button></div>');}
+function upEmp(i){S.emps[i].name=document.getElementById('mNm').value.trim();S.emps[i].group=document.getElementById('mGr').value;saveCfg('employees',S.emps).then(function(){closeMo();rEmps();toast('已更新','ok');});}
+function delEmp(i){if(!confirm('确定删除？'))return;S.emps.splice(i,1);saveCfg('employees',S.emps).then(function(){rEmps();toast('已删除','ok');});}
+function batchImp(){openMo('<div class="mo-t">批量导入</div><div class="fg"><label>粘贴数据（每行：工号,姓名,分组）</label><textarea id="mBt" rows="6" placeholder="E01,张三,A组"></textarea></div><div style="text-align:right;margin-top:16px"><button class="btn btn-p" onclick="doImp()">导入</button> <button class="btn btn-o" onclick="closeMo()">取消</button></div>');}
+function doImp(){var t=document.getElementById('mBt').value.trim();if(!t)return toast('请输入','err');var c=0;t.split('\n').forEach(function(l){var p=l.split(/[,，\t]/).map(function(s){return s.trim()});if(p.length>=2&&!S.emps.find(function(e){return e.id.toLowerCase()===p[0].toLowerCase()})){S.emps.push({id:p[0],name:p[1],group:p[2]||''});c++;}});saveCfg('employees',S.emps).then(function(){closeMo();rEmps();toast('导入'+c+'人','ok');});}
+
+// ========== 派单管理 ==========
+function rDis(){var p=document.getElementById('p_dispatches');var h='<div class="card"><div class="card-title">📋 派单管理 <span class="badge">'+S.dis.length+'个</span></div><div style="margin-bottom:12px"><button class="btn btn-p" onclick="addDis()">➕ 新建派单</button></div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>名称</th><th>总派单量</th><th>已分配</th><th>分配员工</th><th>操作</th></tr></thead><tbody>';S.dis.forEach(function(d,i){var al=d.allocations||[];var ta=al.reduce(function(s,a){return s+(Number(a.pdl)||0)},0);var el=al.map(function(a){var e=S.emps.find(function(x){return x.id===a.empId});return(e?e.name:a.empId)+'('+(a.pdl||0)+')';}).join('、')||'未分配';h+='<tr><td><b>'+d.name+'</b></td><td style="font-weight:600;color:var(--primary)">'+(d.total_pdl||0)+'</td><td>'+ta+'</td><td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+el+'</td><td><button class="btn btn-sm btn-o" onclick="editDis('+i+')">编辑</button> <button class="btn btn-sm btn-d" onclick="delDis('+i+')">删除</button></td></tr>';});if(!S.dis.length)h+='<tr><td colspan="5" class="empty">暂无</td></tr>';h+='</tbody></table></div></div>';p.innerHTML=h;}
+function addDis(){var chk=S.emps.map(function(e){return '<label class="cw"><input type="checkbox" value="'+e.id+'" class="dc" onchange="alcChg()">'+e.name+'('+e.id+')</label>';}).join('');openMo('<div class="mo-t">新建派单</div><div class="fg"><label>派单名称</label><input id="mDn" placeholder="如7月社区营销"></div><div class="fg"><label>总派单量</label><input type="number" id="mDt" inputmode="numeric" value="0" min="0" oninput="alcChg()"></div><div class="fg"><label>分配员工</label><div style="margin-top:4px"><label><input type="checkbox" onchange="togAll(this)"> 全选</label></div><div style="margin-top:4px">'+chk+'</div></div><div class="fg"><label>分配方式</label><div style="display:flex;gap:8px;margin-top:4px"><label><input type="radio" name="am" value="avg" checked onchange="alcChg()"> 平均分配</label><label><input type="radio" name="am" value="manual" onchange="alcChg()"> 手动分配</label></div></div><div id="alPv"></div><div style="text-align:right;margin-top:16px"><button class="btn btn-p" onclick="svDis()">保存</button> <button class="btn btn-o" onclick="closeMo()">取消</button></div>');}
+function togAll(el){document.querySelectorAll('.dc').forEach(function(c){c.checked=el.checked});alcChg();}
+function alcChg(){var am=(document.querySelector('input[name="am"]:checked')||{}).value||'avg';var tp=Number((document.getElementById('mDt')||{}).value)||0;var ck=[].slice.call(document.querySelectorAll('.dc:checked'));var pv=document.getElementById('alPv');if(!pv)return;if(!ck.length){pv.innerHTML='<div style="color:var(--t2);font-size:13px;padding:8px">请选择员工</div>';return;}var h='<div style="margin-top:8px;border-top:1px solid var(--bd);padding-top:12px"><div style="font-weight:600;margin-bottom:8px">分配明细 <span class="tag tag-d">总量:'+tp+'</span></div><table class="at"><thead><tr><th>员工</th><th>分配量</th></tr></thead><tbody>';if(am==='avg'){var ea=Math.floor(tp/ck.length),rm=tp-ea*ck.length;ck.forEach(function(c,i){var e=S.emps.find(function(x){return x.id===c.value});h+='<tr><td>'+(e?e.name:c.value)+'</td><td style="text-align:center;font-weight:600">'+(ea+(i<rm?1:0))+'</td></tr>';});}else{ck.forEach(function(c){var e=S.emps.find(function(x){return x.id===c.value});h+='<tr><td>'+(e?e.name:c.value)+'</td><td><input type="number" class="ai" data-eid="'+c.value+'" inputmode="numeric" value="0" min="0" onchange="alcSum()"></td></tr>';});}h+='</tbody></table>';if(am==='manual')h+='<div id="alSm" style="margin-top:8px;font-size:13px;color:var(--t2)">已分配: 0/'+tp+'</div>';pv.innerHTML=h;if(am==='manual')alcSum();}
+function alcSum(){var tp=Number((document.getElementById('mDt')||{}).value)||0;var sm=0;document.querySelectorAll('.ai').forEach(function(inp){sm+=Number(inp.value)||0;});var el=document.getElementById('alSm');if(el)el.innerHTML='<span style="color:'+(sm!==tp?'var(--rose)':'var(--emerald)')+';font-weight:600">已分配:'+sm+'/'+tp+'</span>'+(sm!==tp?' <span style="color:var(--rose)">（不等于总量）</span>':'');}
+function svDis(){var nm=document.getElementById('mDn').value.trim(),tp=Number(document.getElementById('mDt').value)||0;if(!nm)return toast('请输入名称','err');var ck=[].slice.call(document.querySelectorAll('.dc:checked'));if(!ck.length)return toast('请选择员工','err');var am=(document.querySelector('input[name="am"]:checked')||{}).value||'avg';var al=[];if(am==='avg'){var ea=Math.floor(tp/ck.length),rm=tp-ea*ck.length;ck.forEach(function(c,i){al.push({empId:c.value,pdl:ea+(i<rm?1:0)});});}else{var sm=0;document.querySelectorAll('.ai').forEach(function(inp){var v=Number(inp.value)||0;sm+=v;al.push({empId:inp.dataset.eid,pdl:v});});if(sm!==tp&&!confirm('合计'+sm+'与总量'+tp+'不一致，仍保存？'))return;}S.dis.push({name:nm,total_pdl:tp,allocations:al});saveCfg('dispatches',S.dis).then(function(){closeMo();rDis();toast('创建成功','ok');});}
+function editDis(i){var d=S.dis[i];var chk=S.emps.map(function(e){var a=(d.allocations||[]).find(function(x){return x.empId===e.id});return '<label class="cw"><input type="checkbox" value="'+e.id+'" class="dc" '+(a?'checked':'')+' onchange="alcChg()">'+e.name+'('+e.id+')</label>';}).join('');openMo('<div class="mo-t">编辑派单</div><div class="fg"><label>名称</label><input id="mDn" value="'+d.name+'"></div><div class="fg"><label>总派单量</label><input type="number" id="mDt" inputmode="numeric" value="'+(d.total_pdl||0)+'" min="0" oninput="alcChg()"></div><div class="fg"><label>分配员工</label><div style="margin-top:4px"><label><input type="checkbox" onchange="togAll(this)"> 全选</label></div><div style="margin-top:4px">'+chk+'</div></div><div class="fg"><label>分配方式</label><div style="display:flex;gap:8px;margin-top:4px"><label><input type="radio" name="am" value="avg" checked onchange="alcChg()"> 平均</label><label><input type="radio" name="am" value="manual" onchange="alcChg()"> 手动</label></div></div><div id="alPv"></div><div style="text-align:right;margin-top:16px"><button class="btn btn-p" onclick="upDis('+i+')">保存</button> <button class="btn btn-o" onclick="closeMo()">取消</button></div>');}
+function upDis(i){var nm=document.getElementById('mDn').value.trim(),tp=Number(document.getElementById('mDt').value)||0,ck=[].slice.call(document.querySelectorAll('.dc:checked'));if(!nm)return toast('请输入名称','err');if(!ck.length)return toast('请选择员工','err');var am=(document.querySelector('input[name="am"]:checked')||{}).value||'avg';var al=[];if(am==='avg'){var ea=Math.floor(tp/ck.length),rm=tp-ea*ck.length;ck.forEach(function(c,j){al.push({empId:c.value,pdl:ea+(j<rm?1:0)});});}else{var sm=0;document.querySelectorAll('.ai').forEach(function(inp){var v=Number(inp.value)||0;sm+=v;al.push({empId:inp.dataset.eid,pdl:v});});if(sm!==tp&&!confirm('合计'+sm+'与总量'+tp+'不一致，仍保存？'))return;}S.dis[i].name=nm;S.dis[i].total_pdl=tp;S.dis[i].allocations=al;saveCfg('dispatches',S.dis).then(function(){closeMo();rDis();toast('已更新','ok');});}
+function delDis(i){if(!confirm('确定删除？'))return;S.dis.splice(i,1);saveCfg('dispatches',S.dis).then(function(){rDis();toast('已删除','ok');});}
+
+// ========== 重点业务/分组 ==========
+function rProds(){var p=document.getElementById('p_products');var h='<div class="card"><div class="card-title">⭐ 重点业务</div><table class="dt"><thead><tr><th>序号</th><th>名称</th><th>代码</th><th>操作</th></tr></thead><tbody>';S.prods.forEach(function(pr,i){h+='<tr><td>'+(i+1)+'</td><td>'+pr.n+'</td><td><code>'+pr.k+'</code></td><td><button class="btn btn-sm btn-d" onclick="delPr('+i+')">删除</button></td></tr>';});h+='</tbody></table><div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><input id="npN" placeholder="名称" style="padding:8px 12px;border:1px solid var(--bd);border-radius:8px;font-size:13px"><input id="npK" placeholder="代码" style="padding:8px 12px;border:1px solid var(--bd);border-radius:8px;font-size:13px"><button class="btn btn-p" onclick="addPr()">添加</button></div></div>';p.innerHTML=h;}
+function addPr(){var n=document.getElementById('npN').value.trim(),k=document.getElementById('npK').value.trim();if(!n||!k)return toast('请填写','err');S.prods.push({k:k,n:n});saveCfg('products',S.prods).then(function(){rProds();toast('添加成功','ok');});}
+function delPr(i){S.prods.splice(i,1);saveCfg('products',S.prods).then(function(){rProds();toast('已删除','ok');});}
+function rGrps(){var p=document.getElementById('p_groups');var h='<div class="card"><div class="card-title">🏷️ 人员分组 <span class="badge">'+S.grps.length+'组</span></div><div style="margin-bottom:12px;display:flex;gap:8px"><input id="ngN" placeholder="分组名" style="padding:8px 12px;border:1px solid var(--bd);border-radius:8px;font-size:13px"><button class="btn btn-p" onclick="addGr()">添加</button></div>';S.grps.forEach(function(g,i){var m=S.emps.filter(function(e){return e.group===g.name});h+='<div style="padding:12px;border:1px solid var(--bd);border-radius:8px;margin-bottom:8px"><div style="display:flex;justify-content:space-between"><strong>'+g.name+'</strong><div><span class="tag tag-e">'+m.length+'人</span> <button class="btn btn-sm btn-d" onclick="delGr('+i+')">删除</button></div></div><div style="margin-top:6px;font-size:13px;color:var(--t2)">'+(m.map(function(e){return e.name}).join('、')||'暂无')+'</div></div>';});if(!S.grps.length)h+='<div class="empty">暂无分组</div>';h+='</div>';p.innerHTML=h;}
+function addGr(){var n=document.getElementById('ngN').value.trim();if(!n)return toast('请输入','err');if(S.grps.find(function(g){return g.name===n}))return toast('已存在','err');S.grps.push({name:n});saveCfg('groups',S.grps).then(function(){rGrps();toast('添加成功','ok');});}
+function delGr(i){var gn=S.grps[i].name;S.emps.forEach(function(e){if(e.group===gn)e.group='';});S.grps.splice(i,1);Promise.all([saveCfg('groups',S.grps),saveCfg('employees',S.emps)]).then(function(){rGrps();toast('已删除','ok');});}
+
+// ========== 总看板 ==========
+function rDash(){var p=document.getElementById('p_dashboard');var ss=S.subs,yr=S.dy,mo=S.dm;var ym=yr+'-'+(mo<10?'0':'')+mo;var fl=ss.filter(function(s){var sm=s.month||'',sd=s.date||'';return sm===ym||sm.indexOf(ym)===0||sd.indexOf(ym)===0;});var t={pdl:0,cll:0,htl:0,cjl:0};fl.forEach(function(s){t.pdl+=Number(s.pdl)||0;t.cll+=Number(s.cll)||0;t.htl+=Number(s.htl)||0;t.cjl+=Number(s.cjl)||0;});var hr=t.cll>0?(t.htl/t.cll*100).toFixed(1):'0.0',cr=t.pdl>0?(t.cjl/t.pdl*100).toFixed(1):'0.0';var now=new Date();var yh='<div class="ym"><select onchange="S.dy=+this.value;rDash()">';for(var y=now.getFullYear()-2;y<=now.getFullYear()+1;y++)yh+='<option value="'+y+'" '+(y===yr?'selected':'')+'>'+y+'年</option>';yh+='</select><select onchange="S.dm=+this.value;rDash()">';for(var m=1;m<=12;m++)yh+='<option value="'+m+'" '+(m===mo?'selected':'')+'>'+m+'月</option>';yh+='</select><span style="font-size:13px;color:var(--t2)">共'+fl.length+'条</span></div>';var cd='<div class="sg"><div class="sc c1"><div class="lb">总派单量</div><div class="vl">'+t.pdl+'</div></div><div class="sc c2"><div class="lb">总处理量</div><div class="vl">'+t.cll+'</div></div><div class="sc c3"><div class="lb">总呼通量</div><div class="vl">'+t.htl+'</div></div><div class="sc c4"><div class="lb">总成交量</div><div class="vl">'+t.cjl+'</div></div><div class="sc c5"><div class="lb">呼通率</div><div class="vl">'+hr+'%</div></div><div class="sc c6"><div class="lb">成交转化率</div><div class="vl">'+cr+'%</div></div></div>';var td=[];for(var i=5;i>=0;i--){var dd=new Date(yr,mo-1-i,1),ty=dd.getFullYear(),tm=dd.getMonth()+1,tym=ty+'-'+(tm<10?'0':'')+tm;var f=ss.filter(function(s){var sm=s.month||'',sd=s.date||'';return sm===tym||sm.indexOf(tym)===0||sd.indexOf(tym)===0;});var tt={pdl:0,cll:0,htl:0,cjl:0,label:ty+'/'+tm};f.forEach(function(s){tt.pdl+=Number(s.pdl)||0;tt.cll+=Number(s.cll)||0;tt.htl+=Number(s.htl)||0;tt.cjl+=Number(s.cjl)||0;});td.push(tt);}var ch='<div class="cb"><div style="font-weight:600;margin-bottom:8px">📈 近6月趋势</div><canvas id="tCv" height="260"></canvas></div>';var dt='<div class="card"><div class="card-title">📋 明细</div><div style="overflow-x:auto"><table class="dt"><thead><tr><th>派单</th><th>员工</th><th>派单量</th><th>处理量</th><th>呼通量</th><th>呼通率</th><th>成交量</th><th>转化率</th></tr></thead><tbody>';if(!fl.length)dt+='<tr><td colspan="8" class="empty">该月暂无数据</td></tr>';else fl.forEach(function(s){var h1=Number(s.cll)>0?(Number(s.htl)/Number(s.cll)*100).toFixed(1)+'%':'0%';var c1=Number(s.htl)>0?(Number(s.cjl)/Number(s.htl)*100).toFixed(1)+'%':'0%';dt+='<tr><td>'+(s.dispatch_name||'-')+'</td><td>'+(s.emp_name||'-')+'</td><td>'+(s.pdl||0)+'</td><td>'+(s.cll||0)+'</td><td>'+(s.htl||0)+'</td><td>'+h1+'</td><td>'+(s.cjl||0)+'</td><td>'+c1+'</td></tr>';});dt+='</tbody></table></div></div>';p.innerHTML=yh+cd+ch+dt;setTimeout(function(){drawTr(td);},50);}
+function drawTr(data){var cv=document.getElementById('tCv');if(!cv)return;var ctx=cv.getContext('2d'),W=cv.parentElement.clientWidth-32;cv.width=W*2;cv.height=520;cv.style.width=W+'px';cv.style.height='260px';ctx.scale(2,2);var pL=50,pR=20,pT=20,pB=40,cw=W-pL-pR,ch=260-pT-pB;var mv=Math.max.apply(null,[1].concat(data.map(function(d){return Math.max(d.pdl,d.cll,d.htl,d.cjl)})));ctx.strokeStyle='#e2e8f0';ctx.lineWidth=.5;for(var i=0;i<=4;i++){var y=pT+ch*i/4;ctx.beginPath();ctx.moveTo(pL,y);ctx.lineTo(pL+cw,y);ctx.stroke();ctx.fillStyle='#94a3b8';ctx.font='10px sans-serif';ctx.textAlign='right';ctx.fillText(Math.round(mv*(4-i)/4),pL-8,y+4);}var g=cw/(data.length-1||1);data.forEach(function(d,i){ctx.fillStyle='#94a3b8';ctx.font='11px sans-serif';ctx.textAlign='center';ctx.fillText(d.label,pL+g*i,pT+ch+18);});[{k:'pdl',c:'#4f46e5'},{k:'cll',c:'#06b6d4'},{k:'htl',c:'#10b981'},{k:'cjl',c:'#f59e0b'}].forEach(function(sr){ctx.strokeStyle=sr.c;ctx.lineWidth=2;ctx.beginPath();data.forEach(function(d,i){var x=pL+g*i,y=pT+ch-(d[sr.k]/mv*ch);if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});ctx.stroke();data.forEach(function(d,i){var x=pL+g*i,y=pT+ch-(d[sr.k]/mv*ch);ctx.fillStyle=sr.c;ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fill();});});var lx=pL;[{l:'派单量',c:'#4f46e5'},{l:'处理量',c:'#06b6d4'},{l:'呼通量',c:'#10b981'},{l:'成交量',c:'#f59e0b'}].forEach(function(s){ctx.fillStyle=s.c;ctx.fillRect(lx,pT+ch+30,12,3);ctx.fillStyle='#64748b';ctx.font='10px sans-serif';ctx.textAlign='left';ctx.fillText(s.l,lx+16,pT+ch+34);lx+=70;});}
+
+// ========== 人员分析/排行/入口/导出 ==========
+function rAna(){var p=document.getElementById('p_analysis');var aM=[].concat(new Set(S.subs.map(function(s){return s.month}).filter(Boolean))).sort().reverse();var h='<div class="card"><div class="card-title">🔬 人员分析</div><div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px"><select id="aE" onchange="rAD()"><option value="">选择员工</option>'+S.emps.map(function(e){return '<option value="'+e.id+'">'+e.name+'('+e.id+')</option>';}).join('')+'</select><select id="aM" onchange="rAD()"><option value="">全部月份</option>'+aM.map(function(m){return '<option value="'+m+'">'+m+'</option>';}).join('')+'</select></div><div id="aR"></div></div>';h+='<div class="card"><div class="card-title">📊 派单对比</div><div style="margin-bottom:8px">'+S.dis.map(function(d){return '<label class="cw"><input type="checkbox" class="adc" value="'+d.name+'" onchange="rDC()">'+d.name+'</label>';}).join('')+'</div><div id="dcR"></div></div>';h+='<div class="card"><div class="card-title">📈 分组分析</div><div id="gaR"></div></div>';p.innerHTML=h;rAD();rGA();}
+function rAD(){var eid=(document.getElementById('aE')||{}).value||'',mo=(document.getElementById('aM')||{}).value||'',r=document.getElementById('aR');if(!r)return;if(!eid){r.innerHTML='<div class="empty">请选择员工</div>';return;}var ss=S.subs.filter(function(s){return s.emp_id===eid});if(mo)ss=ss.filter(function(s){return s.month===mo});var t={pdl:0,cll:0,htl:0,cjl:0,tzjf:0,tsjz:0};ss.forEach(function(s){t.pdl+=Number(s.pdl)||0;t.cll+=Number(s.cll)||0;t.htl+=Number(s.htl)||0;t.cjl+=Number(s.cjl)||0;t.tzjf+=Number(s.tzjf)||0;t.tsjz+=Number(s.tsjz)||0;});var hr=t.cll>0?(t.htl/t.cll*100).toFixed(1):'0.0',cr=t.pdl>0?(t.cjl/t.pdl*100).toFixed(1):'0.0';var sc=(t.tzjf*0.3+parseFloat(hr)*2+parseFloat(cr)*1.5).toFixed(0);var lv=sc>=50?'优秀':sc>=30?'达标':'待提升';r.innerHTML='<div class="sg"><div class="sc c1"><div class="lb">派单量</div><div class="vl">'+t.pdl+'</div></div><div class="sc c2"><div class="lb">处理量</div><div class="vl">'+t.cll+'</div></div><div class="sc c3"><div class="lb">呼通量</div><div class="vl">'+t.htl+'</div></div><div class="sc c4"><div class="lb">成交量</div><div class="vl">'+t.cjl+'</div></div><div class="sc c5"><div class="lb">呼通率</div><div class="vl">'+hr+'%</div></div><div class="sc c6"><div class="lb">转化率</div><div class="vl">'+cr+'%</div></div></div><div style="text-align:center;padding:12px;background:linear-gradient(135deg,var(--primary),var(--c6));color:#fff;border-radius:12px"><div style="font-size:32px;font-weight:800">'+sc+'分</div><div>综合评分 · '+lv+'</div></div>';}
+function rDC(){var sel=[].slice.call(document.querySelectorAll('.adc:checked')).map(function(c){return c.value});var r=document.getElementById('dcR');if(!r)return;if(!sel.length){r.innerHTML='<div class="empty">请选择派单</div>';return;}var h='';sel.forEach(function(dn){var ds=S.subs.filter(function(s){return s.dispatch_name===dn});var t={pdl:0,cll:0,htl:0,cjl:0};ds.forEach(function(s){t.pdl+=Number(s.pdl)||0;t.cll+=Number(s.cll)||0;t.htl+=Number(s.htl)||0;t.cjl+=Number(s.cjl)||0;});h+='<div style="padding:12px;border:1px solid var(--bd);border-radius:8px;margin-bottom:8px"><b>'+dn+'</b> <span class="tag tag-d">'+ds.length+'条</span><div style="margin-top:8px;font-size:13px">派单:'+t.pdl+' 处理:'+t.cll+' 呼通:'+t.htl+' 成交:'+t.cjl+'</div></div>';});r.innerHTML=h;}
+function rGA(){var r=document.getElementById('gaR');if(!r)return;if(!S.grps.length){r.innerHTML='<div class="empty">请先创建分组</div>';return;}var h='';S.grps.forEach(function(g){var m=S.emps.filter(function(e){return e.group===g.name});var t={pdl:0,cll:0,htl:0,cjl:0,tzjf:0,tsjz:0};m.forEach(function(emp){S.subs.filter(function(s){return s.emp_id===emp.id}).forEach(function(s){t.pdl+=Number(s.pdl)||0;t.cll+=Number(s.cll)||0;t.htl+=Number(s.htl)||0;t.cjl+=Number(s.cjl)||0;t.tzjf+=Number(s.tzjf)||0;t.tsjz+=Number(s.tsjz)||0;});});var hr=t.cll>0?(t.htl/t.cll*100).toFixed(1):'0.0',cr=t.pdl>0?(t.cjl/t.pdl*100).toFixed(1):'0.0';h+='<div style="padding:12px;border:1px solid var(--bd);border-radius:8px;margin-bottom:8px"><b>'+g.name+'</b> <span class="tag tag-e">'+m.length+'人</span><div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:8px;margin-top:8px;font-size:13px"><div>派单:<b>'+t.pdl+'</b></div><div>处理:<b>'+t.cll+'</b></div><div>呼通:<b>'+t.htl+'</b></div><div>成交:<b>'+t.cjl+'</b></div><div>呼通率:<b>'+hr+'%</b></div><div>转化率:<b>'+cr+'%</b></div><div>积分:<b>'+t.tzjf+'</b></div><div>提值:<b>'+t.tsjz+'</b></div></div></div>';});r.innerHTML=h;}
+function rRanks(){var p=document.getElementById('p_ranks');var sc=S.emps.map(function(emp){var ss=S.subs.filter(function(s){return s.emp_id===emp.id});var t={pdl:0,cll:0,htl:0,cjl:0,tzjf:0};ss.forEach(function(s){t.pdl+=Number(s.pdl)||0;t.cll+=Number(s.cll)||0;t.htl+=Number(s.htl)||0;t.cjl+=Number(s.cjl)||0;t.tzjf+=Number(s.tzjf)||0;});var hr=t.cll>0?t.htl/t.cll*100:0,cr=t.pdl>0?t.cjl/t.pdl*100:0;var s=t.tzjf*0.3+hr*2+cr*1.5;return{emp:emp,s:s.toFixed(0),hr:hr.toFixed(1),cr:cr.toFixed(1),lv:s>=50?'优秀':s>=30?'达标':'待提升'};}).sort(function(a,b){return b.s-a.s;});var ms=Math.max.apply(null,[1].concat(sc.map(function(x){return x.s})));var h='<div class="card"><div class="card-title">🏆 业绩排行</div>';sc.forEach(function(s,i){var rc=i===0?'r1':i===1?'r2':i===2?'r3':'r0';h+='<div class="rr"><div class="rn '+rc+'">'+(i+1)+'</div><div class="ri"><div style="font-weight:600">'+s.emp.name+' <span class="tag tag-d">'+s.emp.id+'</span></div><div style="font-size:13px;color:var(--t2)">综合'+s.s+'分 · '+s.lv+'</div><div class="rb"><div class="rf" style="width:'+s.s/ms*100+'%"></div></div></div></div>';});if(!sc.length)h+='<div class="empty">暂无</div>';h+='</div>';p.innerHTML=h;}
+function rQR(){var p=document.getElementById('p_qrentry');var bu=location.origin+location.pathname;var h='<div class="card"><div class="card-title">🔗 填报入口</div><p style="color:var(--t2);font-size:13px;margin-bottom:16px">支持工号或姓名进入</p>';S.emps.forEach(function(e){var lk=bu+'#emp='+e.id;h+='<div style="padding:12px;border:1px solid var(--bd);border-radius:8px;margin-bottom:8px;display:flex;align-items:center;gap:16px;flex-wrap:wrap"><div id="qr_'+e.id+'" style="flex-shrink:0"></div><div style="flex:1;min-width:200px"><div style="font-weight:600">'+e.name+' <span class="tag tag-e">'+e.id+'</span></div><div style="margin-top:4px;font-size:12px;color:var(--primary);word-break:break-all">'+lk+'</div></div></div>';});if(!S.emps.length)h+='<div class="empty">请先添加员工</div>';h+='</div>';p.innerHTML=h;S.emps.forEach(function(e){var c=document.getElementById('qr_'+e.id);if(c&&!c.hasChildNodes()){try{new QRCode(c,{text:bu+'#emp='+e.id,width:80,height:80,colorDark:'#1e293b',colorLight:'#fff'});}catch(x){c.textContent='QR';}}});}
+function rExp(){var p=document.getElementById('p_export');var aM=[].concat(new Set(S.subs.map(function(s){return s.month}).filter(Boolean))).sort().reverse();p.innerHTML='<div class="card"><div class="card-title">📥 数据导出</div><div style="display:flex;gap:8px;flex-wrap:wrap"><select id="eD"><option value="">全部派单</option>'+S.dis.map(function(d){return '<option value="'+d.name+'">'+d.name+'</option>';}).join('')+'</select><select id="eM"><option value="">全部月份</option>'+aM.map(function(m){return '<option value="'+m+'">'+m+'</option>';}).join('')+'</select><button class="btn btn-p" onclick="doExp()">导出CSV</button></div></div>';}
+function doExp(){var dn=document.getElementById('eD').value,mo=document.getElementById('eM').value;var ss=S.subs;if(dn)ss=ss.filter(function(s){return s.dispatch_name===dn});if(mo)ss=ss.filter(function(s){return s.month===mo});var hd=['派单名称','员工','派单量','处理量','呼通量','呼通率','成交量','派单转化率','呼通转化率'];PR.forEach(function(p){hd.push(p.n+'数量');hd.push(p.n+'积分');});hd.push('提值积分','提升价值');var rows=ss.map(function(s){var pr=s.products?(typeof s.products==='string'?JSON.parse(s.products):s.products):{};var hR=Number(s.cll)>0?(Number(s.htl)/Number(s.cll)*100).toFixed(1)+'%':'0%';var pR=Number(s.pdl)>0?(Number(s.cjl)/Number(s.pdl)*100).toFixed(1)+'%':'0%';var hR2=Number(s.htl)>0?(Number(s.cjl)/Number(s.htl)*100).toFixed(1)+'%':'0%';var r=[s.dispatch_name||'',s.emp_name||'',s.pdl||0,s.cll||0,s.htl||0,hR,s.cjl||0,pR,hR2];PR.forEach(function(p){var d=pr[p.k]||{};r.push(d.n||0);r.push(d.s||0);});r.push(s.tzjf||0,s.tsjz||0);return r;});var csv='\uFEFF'+hd.join(',')+'\n';rows.forEach(function(r){csv+=r.map(function(v){return '"'+v+'"'}).join(',')+'\n';});var b=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='派单数据.csv';a.click();toast('导出成功','ok');}
+
+// ========== 员工端 ==========
+async function initEmp(){var body=document.getElementById('empBody');body.innerHTML='<div class="ld"><div class="sp"></div><div>加载中...</div></div>';if(!S.ok){try{await loadCfg();await loadSubs();}catch(e){S.err=e.message;}}var hash=location.hash;if(hash&&hash.indexOf('#emp=')===0){var raw=decodeURIComponent(hash.substring(5));var emp=S.emps.find(function(e){return e.id.toLowerCase()===raw.toLowerCase()});if(emp){S.eid=emp.id;S.enm=emp.name;}}if(S.eid){var em=S.emps.find(function(e){return e.id===S.eid});if(em){document.getElementById('empTitle').textContent=em.name+' 的填报';document.getElementById('empSub').textContent='工号: '+em.id;}}empTab(0);}
+function empTab(i){document.querySelectorAll('.et div').forEach(function(t,j){t.classList.toggle('active',j===i);});var body=document.getElementById('empBody');if(i===0)rEF(body);else rEH(body);}
+function rEF(ct){if(S.err&&!S.emps.length){ct.innerHTML='<div class="card"><div class="err"><div style="font-weight:600;margin-bottom:8px">数据加载失败</div><div>'+S.err+'</div><div style="margin-top:12px"><button class="btn btn-p" onclick="initEmp()">重新加载</button></div></div></div>';return;}if(S.ok&&!S.emps.length){ct.innerHTML='<div class="card"><div class="empty">暂无员工数据，请联系管理员</div></div>';return;}if(S.eid){rEFF(ct);return;}var h='<div class="card"><div class="card-title">📝 员工身份验证</div><div class="fg"><label>输入工号或姓名</label><input id="eIn" inputmode="text" placeholder="如 e01、E01 或 张三" style="font-size:16px" onkeydown="if(event.key===\'Enter\')lookE()"></div><button class="btn btn-p" style="width:100%;padding:14px;font-size:16px" onclick="lookE()">确认进入</button><div id="eSR"></div></div>';h+='<div class="card" style="margin-top:12px"><div style="font-size:13px;color:var(--t2);margin-bottom:8px">或直接点击：</div>';S.emps.forEach(function(e){h+='<div class="ei" onclick="selE(\''+e.id+'\')"><div><span style="font-weight:600">'+e.name+'</span> <span class="tag tag-e">'+e.id+'</span></div><div style="font-size:12px;color:var(--t2)">点击进入</div></div>';});h+='</div>';ct.innerHTML=h;}
+function selE(id){var e=S.emps.find(function(x){return x.id===id});if(!e)return;S.eid=e.id;S.enm=e.name;document.getElementById('empTitle').textContent=e.name+' 的填报';document.getElementById('empSub').textContent='工号: '+e.id;toast('欢迎，'+e.name+'！','ok');empTab(0);}
+function lookE(){var inp=document.getElementById('eIn');if(!inp)return;var v=inp.value;if(!v||!v.trim())return toast('请输入工号或姓名','err');var e=findE(v);if(!e){var sr=document.getElementById('eSR');if(sr){var h='<div class="err" style="margin-top:12px"><div style="font-weight:600;margin-bottom:8px">未找到: "'+v+'"</div><div>当前员工列表：</div></div>';S.emps.forEach(function(x){h+='<div class="ei" onclick="selE(\''+x.id+'\')"><div><span style="font-weight:600">'+x.name+'</span> <span class="tag tag-e">'+x.id+'</span></div><div style="font-size:12px;color:var(--t2)">点击选择</div></div>';});sr.innerHTML=h;}toast('未找到匹配员工','err');return;}S.eid=e.id;S.enm=e.name;document.getElementById('empTitle').textContent=e.name+' 的填报';document.getElementById('empSub').textContent='工号: '+e.id;toast('欢迎，'+e.name+'！','ok');empTab(0);}
+function rEFF(ct){var h='<div class="card"><div class="card-title">📝 填写日报</div><div class="fg"><label>派单</label><select id="eD" style="font-size:16px">';S.dis.forEach(function(d){h+='<option value="'+d.name+'">'+d.name+'</option>';});h+='</select></div><div class="fg"><label>日期</label><input type="date" id="eDt" value="'+new Date().toISOString().slice(0,10)+'" style="font-size:16px"></div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><div class="fg"><label>派单量</label><input type="number" id="ePdl" inputmode="numeric" value="0" style="font-size:16px"></div><div class="fg"><label>处理量</label><input type="number" id="eCll" inputmode="numeric" value="0" style="font-size:16px"></div><div class="fg"><label>呼通量</label><input type="number" id="eHtl" inputmode="numeric" value="0" style="font-size:16px"></div><div class="fg"><label>成交量</label><input type="number" id="eCjl" inputmode="numeric" value="0" style="font-size:16px"></div></div><div style="margin:12px 0;font-weight:600">成交产品</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">';PR.forEach(function(p){h+='<div style="padding:8px;border:1px solid var(--bd);border-radius:8px"><div style="font-size:13px;font-weight:500;margin-bottom:4px">'+p.n+'</div><input type="number" id="ep_'+p.k+'_n" inputmode="numeric" value="0" placeholder="数量" style="font-size:16px;width:48%;display:inline"><input type="number" id="ep_'+p.k+'_s" inputmode="numeric" value="0" placeholder="积分" style="font-size:16px;width:48%;display:inline;float:right"></div>';});h+='</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px"><div class="fg"><label>提值积分</label><input type="number" id="eTz" inputmode="numeric" value="0" style="font-size:16px"></div><div class="fg"><label>提升价值</label><input type="number" id="eTs" inputmode="numeric" value="0" style="font-size:16px"></div></div></div><div style="position:fixed;bottom:0;left:0;right:0;padding:12px;background:#fff;border-top:1px solid var(--bd);z-index:50"><button class="btn btn-p" style="width:100%;padding:14px;font-size:16px" onclick="subR()">提交填报</button></div><div style="height:60px"></div>';ct.innerHTML=h;}
+async function subR(){var dis=(document.getElementById('eD')||{}).value||'',dt=(document.getElementById('eDt')||{}).value||'';if(!dis)return toast('请选择派单','err');var pdl=Number((document.getElementById('ePdl')||{}).value)||0,cll=Number((document.getElementById('eCll')||{}).value)||0,htl=Number((document.getElementById('eHtl')||{}).value)||0,cjl=Number((document.getElementById('eCjl')||{}).value)||0,tz=Number((document.getElementById('eTz')||{}).value)||0,ts=Number((document.getElementById('eTs')||{}).value)||0;var pr={};PR.forEach(function(p){var n=Number((document.getElementById('ep_'+p.k+'_n')||{}).value)||0;var s=Number((document.getElementById('ep_'+p.k+'_s')||{}).value)||0;pr[p.k]={n:n,s:s};});var mo=dt?dt.substring(0,7):new Date().toISOString().substring(0,7);try{await apiP('dispatch_submissions',{emp_id:S.eid,emp_name:S.enm,dispatch_name:dis,date:dt||new Date().toISOString().slice(0,10),month:mo,pdl:pdl,cll:cll,htl:htl,cjl:cjl,products:pr,tzjf:tz,tsjz:ts});toast('提交成功','ok');PR.forEach(function(p){var ne=document.getElementById('ep_'+p.k+'_n');var se=document.getElementById('ep_'+p.k+'_s');if(ne)ne.value=0;if(se)se.value=0;});['ePdl','eCll','eHtl','eCjl','eTz','eTs'].forEach(function(id){var el=document.getElementById(id);if(el)el.value=0;});await loadSubs();}catch(e){toast('提交失败: '+e.message,'err');}}
+function rEH(ct){if(!S.eid){ct.innerHTML='<div class="card"><div class="empty">请先验证身份</div></div>';return;}var ss=S.subs.filter(function(s){return s.emp_id===S.eid});var h='<div class="card"><div class="card-title">📜 填报历史 <span class="badge">'+ss.length+'条</span></div>';if(!ss.length)h+='<div class="empty">暂无记录</div>';else ss.forEach(function(s){h+='<div style="padding:12px;border:1px solid var(--bd);border-radius:8px;margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center"><div><b>'+(s.dispatch_name||'-')+'</b> <span class="tag tag-d">'+(s.date||'-')+'</span></div><div><button class="btn btn-sm btn-o" onclick="edSub(\''+s.id+'\')">编辑</button> <button class="btn btn-sm btn-d" onclick="dlSub(\''+s.id+'\')">删除</button></div></div><div style="margin-top:8px;font-size:13px;color:var(--t2)">派单:'+((s.pdl||0))+' 处理:'+((s.cll||0))+' 呼通:'+((s.htl||0))+' 成交:'+((s.cjl||0))+'</div></div>';});h+='</div>';ct.innerHTML=h;}
+function edSub(id){var s=S.subs.find(function(x){return x.id===id});if(!s)return;openMo('<div class="mo-t">编辑</div><div class="fg"><label>派单量</label><input type="number" id="edPdl" value="'+(s.pdl||0)+'"></div><div class="fg"><label>处理量</label><input type="number" id="edCll" value="'+(s.cll||0)+'"></div><div class="fg"><label>呼通量</label><input type="number" id="edHtl" value="'+(s.htl||0)+'"></div><div class="fg"><label>成交量</label><input type="number" id="edCjl" value="'+(s.cjl||0)+'"></div><div class="fg"><label>提值积分</label><input type="number" id="edTz" value="'+(s.tzjf||0)+'"></div><div class="fg"><label>提升价值</label><input type="number" id="edTs" value="'+(s.tsjz||0)+'"></div><div style="text-align:right;margin-top:16px"><button class="btn btn-p" onclick="svEd(\''+id+'\')">保存</button> <button class="btn btn-o" onclick="closeMo()">取消</button></div>');}
+async function svEd(id){try{await apiU('dispatch_submissions',id,{pdl:Number(document.getElementById('edPdl').value)||0,cll:Number(document.getElementById('edCll').value)||0,htl:Number(document.getElementById('edHtl').value)||0,cjl:Number(document.getElementById('edCjl').value)||0,tzjf:Number(document.getElementById('edTz').value)||0,tsjz:Number(document.getElementById('edTs').value)||0});closeMo();toast('已更新','ok');await loadSubs();empTab(1);}catch(e){toast('更新失败','err');}}
+async function dlSub(id){if(!confirm('确定删除？'))return;try{await apiD('dispatch_submissions',id);toast('已删除','ok');await loadSubs();empTab(1);}catch(e){toast('删除失败','err');}}
+
+// ========== 初始化 ==========
+(function(){var h=location.hash;if(h&&h.indexOf('#emp=')===0){showPg('emp');initEmp();}})();
 </script>
 </body>
 </html>
